@@ -16,14 +16,11 @@
 
 \section{Terminology} % creates a section
 
-Consider weighted digraphs $\left(G_0,G_1,\ldots,G_m\right)$ corresponding
-to layers of a multigraph $\mathcal{G}$ with inter-layer edge set 
-$\mathcal{E}=\mathcal{E}(\mathcal{G})$. 
-A node belonging to layer $l$ is denoted by a superscript, e.g., $u^l$ is
-node $u$ of $G_l$. A path is a sequence of edges in the multigraph 
-$P_i={(u_i^{l_i},v_i^{l_i})}_i$, where either 
-$v_i^{l_i}=u_{i+1}^{l_{i+1}}$ or $(v_i^{l_i},u_{i+1}^{l_{i+1}})\in\mathcal{E}$. 
-The weight of an edge is determined by the weight function $w$ that sums the
+Consider weighted digraphs $\left(G_0,G_1,\ldots,G_m\right)$ with equal vertex sets and corresponding
+to layers of a multigraph $\mathcal{G}$. A node belonging to layer $l$ is denoted by a superscript, e.g.,
+$u^l$ is
+node $u$ of $G_l$. A path is a sequence of edges in the multigraph $P_i={(u_i^{l_i},v_i^{l_i})}_i$,
+where $v_i=u_{i+1}$. The weight of an edge is determined by the weight function $w$ that sums the
 (strictly positive) weights of the edges along an input path.
 
 The {\bf multidistance} of a path is the tuple
@@ -40,8 +37,8 @@ $P\prec P^\prime$ is equivalent to $M(P)\prec M(P^\prime)$.
 A path $P$ is {\bf pareto minimal} (or shortest) if does not dominate any paths with the same
 endpoints. A pareto minimal path's multidistance is \emph{pareto efficient}. Note that there can be
 multiple pareto shortest paths with distinct multidistances; these
-multidistances will be incomparable, and the set of such multidistances is called the 
-{\bf pareto distance set} between the endpoints.
+multidistances will be incomparable, and the set of such multidistances is called the {\bf pareto distance
+        set} between the endpoints.
 
 A multidistance can be converted into a traditional distance by computing a weighted sum of its
 its entries. The weights correspond to a weighting of the layers. For weight vector $W$,
@@ -137,7 +134,7 @@ graph backbones of each layer, as we now formally state and prove.
     backbone.
 \end{proof}
 
-A corrolary of this result relates the pareto backbone and pareto distance set between two nodes.
+A corollary of this result relates the pareto backbone and pareto distance set between two nodes.
 
 \begin{corollary}
     The pareto distance set between nodes $u$ and $v$ in $\mathcal{G}$ is equal to the pareto distance
@@ -159,7 +156,7 @@ A corrolary of this result relates the pareto backbone and pareto distance set b
     of $G_l$. By the previous theorem, this implies that $(P_i,P_{i+1})$ is an edge of 
     $\mathcal{B}(\mathcal{G})$. Applying this argument ot all edges of $P$ reveals that $P$ is a path in
     $\mathcal{B}(\mathcal{G})$. Because $P$ is a path in $\mathcal{B}(\mathcal{G})$ and $M(P)$ is 
-    incoparable to
+    incomparable to
     all multidistances in $D^\prime$, $M(P)$ is an element of $D^\prime$. As this argument applies for 
     arbitrary paths with multidistance in $D^\prime$, it follows that $D$ is a subset of
     $D^\prime$.
