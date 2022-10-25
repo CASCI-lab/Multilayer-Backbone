@@ -16,17 +16,20 @@
 
 \section{Terminology} % creates a section
 
-Consider weighted digraphs $\left(G_0,G_1,\ldots,G_m\right)$ with equal vertex sets and corresponding
-to layers of a multigraph $\mathcal{G}$. A node beloning to layer $l$ is denoted by a superscript, e.g.,
-$u^l$ is
-node $u$ of $G_l$. A path is a sequence of edges in the multigraph $P_i={(u_i^{l_i},v_i^{l_i})}_i$,
-where $v_i=u_{i+1}$. The weight of an edge is determined by the weight function $w$ that sums the
-(strictly positive) weigths of the edges along an input path.
+Consider weighted digraphs $\left(G_0,G_1,\ldots,G_m\right)$ corresponding
+to layers of a multigraph $\mathcal{G}$ with inter-layer edge set 
+$\mathcal{E}=\mathcal{E}(\mathcal{G})$. 
+A node belonging to layer $l$ is denoted by a superscript, e.g., $u^l$ is
+node $u$ of $G_l$. A path is a sequence of edges in the multigraph 
+$P_i={(u_i^{l_i},v_i^{l_i})}_i$, where either 
+$v_i^{l_i}=u_{i+1}^{l_{i+1}}$ or $(v_i^{l_i},u_{i+1}^{l_{i+1}})\in\mathcal{E}$. 
+The weight of an edge is determined by the weight function $w$ that sums the
+(strictly positive) weights of the edges along an input path.
 
 The {\bf multidistance} of a path is the tuple
 \[M(P)=\left(\sum_{i:l_i=0} w(P_i),\sum_{i:l_i=1} w(P_i),\ldots,\sum_{i:l_i=m} w(P_i)\right).\]
 
-We abbreviate this $M(P)=(M_0,M_1,\ldots,M_m)$. We define the parital order $\prec$
+We abbreviate this $M(P)=(M_0,M_1,\ldots,M_m)$. We define the partial order $\prec$
 on multidistances. We say that $M(P)\prec M(P^\prime)$ if $M_l\leq {M^\prime}_l$ for all $l$ and if
 there is at least one value of $l$ for which the inequality is strict; in this case, we say that
 $P^\prime$ \emph{dominates} $P$. If neither
@@ -35,10 +38,10 @@ we write $M(P)\sim M(P^\prime)$. We extend these comparisons to $P$ for notation
 $P\prec P^\prime$ is equivalent to $M(P)\prec M(P^\prime)$.
 
 A path $P$ is {\bf pareto minimal} (or shortest) if does not dominate any paths with the same
-endpoints. The pareto minimal path's multidistance is \emph{pareto efficient}. Note that there can be
+endpoints. A pareto minimal path's multidistance is \emph{pareto efficient}. Note that there can be
 multiple pareto shortest paths with distinct multidistances; these
-multidistances will be incomparable, and the set of such multidistances is called the {\bf pareto distance
-        set} between the endpoints.
+multidistances will be incomparable, and the set of such multidistances is called the 
+{\bf pareto distance set} between the endpoints.
 
 A multidistance can be converted into a traditional distance by computing a weighted sum of its
 its entries. The weights correspond to a weighting of the layers. For weight vector $W$,
@@ -74,7 +77,7 @@ $a,b,c>0$. For $M^0$ to be minimal, it must satisfy
     2a+b+c \leq a+b+2c \\
     2a+b+c \leq 3a+0b+0c,
 \end{align*}
-but the first two inequalities imply $a\leq b,c$, while the last implies $b+c\leq a$, so these are
+but the first two inequalities imply $a\leq b,c$, while the last implies $b+c\leq a$. These are
 impossible to satisfy simultaneously. It remains true, however, that $M^0$ can be shorter than any
 \emph{individual} path under a carefully chosen weighting. No such weighting can make the corresponding
 path shorter than all others.
@@ -82,7 +85,7 @@ path shorter than all others.
 The multidistance $M^3$ in this example, however, illustrates an important special case: its path
 is confined to a single layer. Because of this, the pareto shortest path criterion reduces to the
 requirement that no other multidistance has a smaller value in the entry corresponding to that layer.
-Thus, a weighting can always be chosen to make such paths have minimal distance; simply assign a very
+Thus, a weighting can always be chosen to make such paths have minimal distance. To do so, simply assign a very
 small weight to that layer, and a very large weight to all others. We formalize this as a lemma:
 
 \begin{lemma}
@@ -93,7 +96,7 @@ small weight to that layer, and a very large weight to all others. We formalize 
 
 \begin{proof}
     Without loss of generality, we take $M(P)=(M_0,0,\ldots,0)$.
-    Consider each path $P^\prime$ between the enpoints of $P$.
+    Consider each path $P^\prime$ between the endpoints of $P$.
     Because $P$ is a pareto
     shortest path, $P^\prime \not \prec P$. This implies that either $M(P) = M(P^\prime)$ or
     $\sum_{l>0}M^\prime_l > 0$. In the first case, no weighting can yield $dist_W(P^\prime)<dist_W(P)$.
@@ -149,7 +152,7 @@ A corrolary of this result relates the pareto backbone and pareto distance set b
     therefore $D^\prime$ is a subset of $D$.
 
     ($D\subseteq D^\prime$) Consider a path $P$ connecting $u$ to $v$ in $\mathcal{G}$ whose
-    multidistance is in $D$. Because $D^\prime\subseteq D$, $M(P)$ is incoparable to
+    multidistance is in $D$. Because $D^\prime\subseteq D$, $M(P)$ is incomparable to
     all multidistances in $D^\prime$. Consider an arbitrary edge of $P$, $(P_i,P_{i+1})$
     in a layer $G_l$. Because $P$ is pareto minimal, there is no path in $G_l$ from $P_i$ to
     $P_{i+1}$ that is shorter than $w((P_i,P_{i+1}))$, and therefore $(P_i,P_{i+1})$ is in the backbone

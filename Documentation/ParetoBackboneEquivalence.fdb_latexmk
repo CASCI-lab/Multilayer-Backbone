@@ -1,7 +1,7 @@
 # Fdb version 3
-["pdflatex"] 1662056096 "/home/BU/jrozum/Documents/Multilayer Backbone/Documentation/ParetoBackboneEquivalence.tex" "ParetoBackboneEquivalence.pdf" "ParetoBackboneEquivalence" 1662056097
+["pdflatex"] 1666728318 "/home/BU/jrozum/Documents/Multilayer Backbone/Documentation/ParetoBackboneEquivalence.tex" "ParetoBackboneEquivalence.pdf" "ParetoBackboneEquivalence" 1666728318
   "/etc/texmf/web2c/texmf.cnf" 1657814946 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/BU/jrozum/Documents/Multilayer Backbone/Documentation/ParetoBackboneEquivalence.tex" 1662056096 9133 f11fc17cad7f9ef201715116eafe9c9f ""
+  "/home/BU/jrozum/Documents/Multilayer Backbone/Documentation/ParetoBackboneEquivalence.tex" 1666728317 9249 70840a2ff0ddac023d808ca98f0233ae ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1246382020 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -28,6 +28,7 @@
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb" 1248133631 35752 024fb6c41858982481f6968b5fc26508 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb" 1248133631 32722 d7379af29a190c3f453aba36302ff5a9 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb" 1248133631 32362 179c33bbf43f19adbb3825bb4e36e57a ""
+  "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb" 1248133631 31809 8670ca339bf94e56da1fc21c80635e2a ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb" 1248133631 32762 224316ccc9ad3ca0423a14971cfa7fc1 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb" 1248133631 32569 5e5ddc8df908dea60932f3c484a54c0d ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb" 1248133631 32716 08e384dc442464e7285e891af9f45947 ""
@@ -45,8 +46,8 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1644012257 39432 7155514e09a3d69036fac785183a21c2 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1658163392 4379155 98693266ff65f58d9f98aff394de12d2 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1658163409 2799655 bef581660a7800210f9a54551ced376d ""
-  "ParetoBackboneEquivalence.aux" 1662056097 131 aa89794117b5804efab0dc33bab98f43 "pdflatex"
-  "ParetoBackboneEquivalence.tex" 1662056096 9133 f11fc17cad7f9ef201715116eafe9c9f ""
+  "ParetoBackboneEquivalence.aux" 1666728318 131 aa89794117b5804efab0dc33bab98f43 "pdflatex"
+  "ParetoBackboneEquivalence.tex" 1666728317 9249 70840a2ff0ddac023d808ca98f0233ae ""
   (generated)
   "ParetoBackboneEquivalence.aux"
   "ParetoBackboneEquivalence.log"
