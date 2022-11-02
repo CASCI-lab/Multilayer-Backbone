@@ -1,16 +1,17 @@
 from __future__ import annotations
 from copy import deepcopy
+
+import numpy as np
 from MultiDistance import MultiDistance, sum_pareto_distance, multimerge
 from ConceptNode import ConceptNode
 from itertools import count, pairwise
 import networkx as nx
-from copy import deepcopy
 from heapq import heappop, heappush
 
 
 from typing import Hashable, Iterator
 
-nodeIDType = tuple[Hashable, str]
+nodeIDType = tuple[Hashable, str, int]
 
 
 class KnowledgeGraph:
@@ -23,8 +24,12 @@ class KnowledgeGraph:
             Each key is a ID for the layer, and each value is a networkx digraph representing the layer.
         """
         self.layers = layers
-        self.nodes = {(u, layer_id): ConceptNode(u, layer_id, d) for layer_id, G in layers.items()
+        self.layer_list = list(sorted(layers))
+        self.layer_ind = {L: i for i, L in enumerate(sorted(layers))}
+        self.nodes = {(u, layer_id): ConceptNode(u, layer_id, self.layer_ind[layer_id], d)
+                      for layer_id, G in layers.items()
                       for u, d in G.nodes(data=True)}
+        self.n_layers = len(layers)
 
     def conceptnode(self, node_id: tuple[Hashable, str]) -> ConceptNode:
         """Constructs a ConceptNode from a node name and a layer ID.
@@ -41,7 +46,7 @@ class KnowledgeGraph:
         """
         u, layer_id = node_id
         d = self.layers[layer_id].nodes[u]
-        return ConceptNode(u, layer_id, d)
+        return ConceptNode(u, layer_id, self.layer_ind[layer_id], d)
 
     def neighbors(self, node: ConceptNode) -> set[ConceptNode]:
         """Computes and returns the set of neighbors of the input node.
@@ -113,7 +118,7 @@ class KnowledgeGraph:
     def multidistance(self,
                       path: list[nodeIDType],
                       weight: str = 'weight',
-                      initial_dists: MultiDistance = MultiDistance({}),
+                      initial_dists: MultiDistance | None = None,
                       inplace: bool = False) -> MultiDistance:
         """The multidistance of a path.
 
@@ -126,7 +131,7 @@ class KnowledgeGraph:
             By default 'weight'.
         initial_dists : MultiDistance, optional
             An initial distance, useful for appending a new path to an existing one, 
-            by default MultiDistance({}).
+            by default MultiDistance(self.n_layers).
         inplace : bool, optional
             Whether initial_dists should be modified in place, by default False.
 
@@ -135,6 +140,8 @@ class KnowledgeGraph:
         MultiDistance
             The multidistance of the specified path.
         """
+        if initial_dists is None:
+            initial_dists = MultiDistance(self.n_layers)
 
         if inplace:
             dists = initial_dists
@@ -171,8 +178,8 @@ class KnowledgeGraph:
         _type_
             _description_
         """
-        md = MultiDistance({})
-        md[(u[1], v[1])] = self.edge_weight(
+        md = MultiDistance(self.n_layers)
+        md[u[2]] = self.edge_weight(
             self.nodes[u], self.nodes[v], weight=weight)
         return md
 
@@ -208,11 +215,11 @@ class KnowledgeGraph:
         counter = count()
         fringe = []  # (multidistance, counter, conceptnode, depth)
 
-        seen[source.id] = [MultiDistance({})]
-        heappush(fringe, ([MultiDistance({})], next(counter), source, 0))
+        seen[source.id] = [MultiDistance(self.n_layers)]
+        heappush(fringe, ([MultiDistance(self.n_layers)], next(counter), source, 0))
 
         if cut_by_neighbors:
-            neighbor_cut = MultiDistance({})
+            neighbor_cut = MultiDistance(self.n_layers)
             for layer, GL in self.layers.items():
                 for v in GL.neighbors(source.name):
                     #w = GL.edges[(source.name, v)][weight]
@@ -227,7 +234,6 @@ class KnowledgeGraph:
                 if depth > depth_cut:
                     continue
 
-            #mm = multimin(dist.get(u.id, []) + d)
             mm = multimerge(dist.get(u.id, []), d)
             if u.id in dist:
                 if all([m in dist[u.id] for m in mm]):
@@ -236,20 +242,13 @@ class KnowledgeGraph:
             dist[u.id] = mm
 
             for v in self.neighbors(u):
-                uv_dist = [MultiDistance(x) for x in dist[u.id]]
+                uv_dist = [MultiDistance.from_array(x.arr) for x in dist[u.id]]
                 # We are making layer crossings free here
                 if u.layer == v.layer:
-                    #w = self.layers[u.layer].edges[(u.name, v.name)][weight]
                     w = self.layers[u.layer]._adj[u.name][v.name][weight]
-                    lkey = (u.layer, v.layer)
+                    lkey = u.layer_ind
                     for pd in uv_dist:
-                        pd[lkey] = pd.get(lkey, 0) + w
-                # here we make them all count together
-                # else:
-                #     w = 1
-                #     lkey = ('LX','LY')
-                #     for pd in uv_dist:
-                #         pd[lkey] = pd.get(lkey,0) + w
+                        pd.add_distance_to_layer(w,lkey)
 
                 if cut_by_neighbors:
                     if any(not(x < neighbor_cut) for x in uv_dist):
@@ -374,6 +373,7 @@ class KnowledgeGraph:
 
         if closure is None:
             closure = self.pareto_distance_closure(cut_by_neighbors=cut_by_neighbors,
+                                                   start_layer=self.layer_list[0],
                                                    depth_cut=depth_cut,
                                                    weight=weight)
 
@@ -381,13 +381,22 @@ class KnowledgeGraph:
 
         for node in self.nodes.values():
             layer = node.layer
+            layer_ind = self.layer_ind[layer]
             u = node.name
             G = self.layers[layer]
 
             for v in G.neighbors(u):
-                dists = closure[u][v]
-                uv_dist = MultiDistance(
-                    {(layer, layer): G.edges[(u, v)][weight]})
+                if cut_by_neighbors:
+                    if v in closure[u]:
+                        dists = closure[u][v]
+                    else:
+                        continue
+                else:
+                    dists = closure[u][v]
+
+                uv_dist = MultiDistance(self.n_layers)
+                uv_dist.add_distance_to_layer(G.edges[(u, v)][weight],layer_ind)
+                    
 
                 if any([d < uv_dist for d in dists]):
                     edges_to_remove.add(((u, layer), (v, layer)))
@@ -401,7 +410,7 @@ class KnowledgeGraph:
             cut_by_neighbors: bool = False,
             depth_cut: int | None = None,
             weight: str = 'weight',
-            layer_weights: dict[tuple[str, str], float] | None = None,
+            layer_weights: np.ndarray[np.number] | None = None,
     ) -> set[tuple[nodeIDType, nodeIDType]]:
         """Compute the weighted backbone from the pareto closure using weights for each layer.
 
@@ -424,7 +433,7 @@ class KnowledgeGraph:
 
         Returns
         -------
-        set[tuple[nodeIDType, nodeIDType]]
+        set[tuple[nlayer_indodeIDType, nodeIDType]]
             Edges to remove to form the weighted backbone.
         """
 
@@ -435,6 +444,7 @@ class KnowledgeGraph:
 
         for node in self.nodes.values():
             layer = node.layer
+            layer_ind = self.layer_ind[layer]
             u = node.name
             G = self.layers[layer]
 
@@ -446,7 +456,7 @@ class KnowledgeGraph:
                     uv_dist = G.edges[(u, v)][weight]
                 else:
                     uv_dist = (G.edges[(u, v)][weight]
-                               * layer_weights[(layer, layer)])
+                               * layer_weights[layer_ind])
 
                 if dist < uv_dist:
                     edges_to_remove.add(((u, layer), (v, layer)))
