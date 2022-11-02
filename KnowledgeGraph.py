@@ -374,6 +374,7 @@ class KnowledgeGraph:
 
         if closure is None:
             closure = self.pareto_distance_closure(cut_by_neighbors=cut_by_neighbors,
+                                                   start_layer=list(self.layers)[0],
                                                    depth_cut=depth_cut,
                                                    weight=weight)
 
