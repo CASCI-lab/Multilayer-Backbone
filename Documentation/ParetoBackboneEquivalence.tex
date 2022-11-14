@@ -14,9 +14,9 @@
 \begin{document} % All begin commands must be paired with an end command somewhere
 \maketitle % creates title using information in preamble (title, author, date)
 
-\section{Terminology} % creates a section
+\section{Terminology and main results}
 
-Consider weighted digraphs $\left(G_0,G_1,\ldots,G_m\right)$ with equal vertex sets and corresponding
+Consider weighted digraphs $\left\{G_0,G_1,\ldots,G_m\right\}$ with equal vertex sets and corresponding
 to layers of a multigraph $\mathcal{G}$. A node belonging to layer $l$ is denoted by a superscript, e.g.,
 $u^l$ is
 node $u$ of $G_l$. A path is a sequence of edges in the multigraph $P_i={(u_i^{l_i},v_i^{l_i})}_i$,
@@ -164,5 +164,11 @@ A corollary of this result relates the pareto backbone and pareto distance set b
 
 This theorem and its corollary have significant computational implications. They imply that a pareto
 backbone and its associated pareto distance sets can be computed from the backbones of individual layers.
+
+\section{Temporal networks}
+A temporally restricted multigraph is one in which the indices of the layers 
+$\left\{G_0,G_1,\ldots,G_m\right\}$ are taken to imply a temporal ordering. A path 
+$P_i={(u_i^{l_i},v_i^{l_i})}_i$ in a temporally restricted multigraphs must satisfy the
+additional constraint $l_i\leq l_{i+1}$ for all edge pairs in $P_i$.
 
 \end{document}
