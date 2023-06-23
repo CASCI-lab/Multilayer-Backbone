@@ -21,7 +21,7 @@ pub fn multimin(dists: &[MultiDistance]) -> Vec<MultiDistance> {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-struct EdgeID {
+struct EdgeLayerID {
     layer_start: usize,
     layer_end: usize,
     layer_weight_index: usize,
@@ -29,7 +29,7 @@ struct EdgeID {
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct MultiDistance {
-    total: HashMap<EdgeID, f32>,
+    total: HashMap<EdgeLayerID, f32>,
 }
 
 impl MultiDistance {
@@ -70,9 +70,51 @@ impl PartialOrd for MultiDistance {
 
         match (found_larger, found_smaller) {
             (false, false) => Some(std::cmp::Ordering::Equal),
-            (false, true) => Some(std::cmp::Ordering::Less),
-            (true, false) => Some(std::cmp::Ordering::Greater),
-            (true, true) => None, // never reached because we return early from inside the loop
+            (false, true) => Some(std::cmp::Ordering::Greater),
+            (true, false) => Some(std::cmp::Ordering::Less),
+            (true, true) => None, // never reached because we return early from loop
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_partial_order() {
+        let layer1 = EdgeLayerID {
+            layer_start: 0,
+            layer_end: 0,
+            layer_weight_index: 0,
+        };
+        let layer2 = EdgeLayerID {
+            layer_start: 0,
+            layer_end: 1,
+            layer_weight_index: 0,
+        };
+
+        let m1 = MultiDistance {
+            total: HashMap::from([(layer1, 1.0), (layer2, 2.0)]),
+        };
+
+        let m2 = MultiDistance {
+            total: HashMap::from([(layer1, 2.0), (layer2, 1.0)]),
+        };
+
+        let m3 = MultiDistance {
+            total: HashMap::from([(layer1, 2.0), (layer2, 2.0)]),
+        };
+
+        let m4 = MultiDistance {
+            total: HashMap::from([(layer1, 1.0), (layer2, 1.0)]),
+        };
+        println!("{:?}", m1.partial_cmp(&m3));
+        assert!(m1.partial_cmp(&m2).is_none());
+        assert!(m1 < m3);
+        assert!(m1 > m4);
+        assert!(m2 < m3);
+        assert!(m2 > m4);
+        assert!(m4 < m3);
+        assert!(m1 + m2 == m3 + m4);
     }
 }
