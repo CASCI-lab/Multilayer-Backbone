@@ -7,8 +7,8 @@ pub fn multimin(dists: &[MultiDistance]) -> Vec<MultiDistance> {
 
     for (i, t) in dists.iter().enumerate() {
         let mut found_smaller = false;
-        for c in dists[i..dists.len()].iter().chain(minlist.iter()) {
-            if c < t {
+        for c in dists[(i + 1)..dists.len()].iter().chain(minlist.iter()) {
+            if c <= t {
                 found_smaller = true;
                 break;
             }
@@ -21,15 +21,15 @@ pub fn multimin(dists: &[MultiDistance]) -> Vec<MultiDistance> {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-struct EdgeLayerID {
-    layer_start: usize,
-    layer_end: usize,
-    layer_weight_index: usize,
+pub struct EdgeLayerID {
+    pub layer_start: usize,
+    pub layer_end: usize,
+    pub layer_weight_index: usize,
 }
 
 #[derive(PartialEq, Clone, Debug, Default)]
 pub struct MultiDistance {
-    total: HashMap<EdgeLayerID, f32>,
+    pub total: HashMap<EdgeLayerID, f32>,
 }
 
 impl MultiDistance {
@@ -111,20 +111,22 @@ mod tests {
 
         let dists = vec![m1.clone(), m2.clone(), m3.clone(), m4.clone()];
         let dists2 = vec![m1.clone(), m2.clone(), m3.clone()];
+        let dists3 = vec![m1.clone(), m1.clone(), m2.clone()];
         let mm = multimin(&dists);
         let mm2 = multimin(&dists2);
-
-        assert!(mm == vec![m4.clone()]);
-        assert!(mm2 == vec![m1.clone(), m2.clone()]);
+        let mm3 = multimin(&dists3);
+        assert_eq!(multimin(&Vec::new()), Vec::new());
+        assert_eq!(mm, vec![m4.clone()]);
+        assert_eq!(mm2, vec![m1.clone(), m2.clone()]);
+        assert_eq!(mm3, vec![m1.clone(), m2.clone()]);
 
         assert!(m1.partial_cmp(&m2).is_none());
-
         assert!(m1 < m3);
         assert!(m1 > m4);
         assert!(m2 < m3);
         assert!(m2 > m4);
         assert!(m4 < m3);
 
-        assert!(m1 + m2 == m3 + m4);
+        assert_eq!(m1 + m2, m3 + m4);
     }
 }

@@ -21,7 +21,7 @@ pub fn parteto_shortest_distance_from_source(
 
     let mut fringe = vec![FringeNode {
         node_id: source,
-        dists: vec![initial_dist],
+        dists: vec![initial_dist.clone()],
     }];
 
     while !fringe.is_empty() {
@@ -33,15 +33,16 @@ pub fn parteto_shortest_distance_from_source(
             .entry(fringe_node.node_id)
             .or_insert(Vec::new())
             .clone();
-        let old_dist = dist_map.get_mut(&fringe_node.node_id).unwrap();
+        // let old_dist = dist_map.get_mut(&fringe_node.node_id).unwrap();
+        let mut old_dist = fringe_node.dists;
         let mut new_dist = fringe_dist;
-        new_dist.append(old_dist);
+        new_dist.append(&mut old_dist);
         new_dist = multimin(&new_dist);
         *dist_map.entry(fringe_node.node_id).or_default() = new_dist;
 
         if let Some(neighbors) = edge_list.get(&fringe_node.node_id) {
             for (child, edge) in neighbors {
-                let mut child_dist = seen.entry(*child).or_insert(Vec::new());
+                let child_dist = seen.entry(*child).or_insert(Vec::new());
 
                 let mut fringe_to_child_dist = dist_map.get(&fringe_node.node_id).unwrap().clone();
                 fringe_to_child_dist = fringe_to_child_dist
@@ -51,10 +52,15 @@ pub fn parteto_shortest_distance_from_source(
                 fringe_to_child_dist.append(child_dist);
                 fringe_to_child_dist = multimin(&fringe_to_child_dist);
 
-                let seen_rep = &child_dist[0].clone(); // all are incomparable
-                let fringe_rep = &fringe_to_child_dist[0].clone(); // all are incomparable
+                let push_to_fringe = if child_dist.is_empty() {
+                    true
+                } else {
+                    let seen_rep = &child_dist[0].clone(); // all are incomparable
+                    let fringe_rep = &fringe_to_child_dist[0].clone(); // all are incomparable
+                    fringe_rep < seen_rep
+                };
                 *child_dist = fringe_to_child_dist;
-                if fringe_rep < seen_rep {
+                if push_to_fringe {
                     fringe.push(FringeNode {
                         node_id: *child,
                         dists: child_dist.clone(),
@@ -63,6 +69,49 @@ pub fn parteto_shortest_distance_from_source(
             }
         }
     }
-
+    if dist_map[&source] == vec![initial_dist] {
+        dist_map.remove(&source);
+    }
     dist_map
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::multidistance::EdgeLayerID;
+    #[test]
+    fn test_simple_shortest_path() {
+        let layer1 = EdgeLayerID {
+            layer_start: 0,
+            layer_end: 0,
+            layer_weight_index: 0,
+        };
+
+        let m01 = MultiDistance {
+            total: HashMap::from([(layer1, 1.0), (layer1, 2.0)]),
+        };
+
+        let m02 = MultiDistance {
+            total: HashMap::from([(layer1, 1.0), (layer1, 4.0)]),
+        };
+
+        let m12 = MultiDistance {
+            total: HashMap::from([(layer1, 1.0), (layer1, 2.0)]),
+        };
+
+        let edge_list: HashMap<NodeID, Vec<(NodeID, MultiDistance)>> = HashMap::from([
+            (
+                NodeID(0),
+                vec![(NodeID(1), m01.clone()), (NodeID(2), m02.clone())],
+            ),
+            (NodeID(1), vec![(NodeID(2), m12)]),
+        ]);
+
+        let expected: HashMap<NodeID, Vec<MultiDistance>> =
+            HashMap::from([(NodeID(1), vec![m01]), (NodeID(2), vec![m02])]);
+
+        let shortest_paths = parteto_shortest_distance_from_source(NodeID(0), &edge_list);
+
+        assert_eq!(expected, shortest_paths);
+    }
 }
