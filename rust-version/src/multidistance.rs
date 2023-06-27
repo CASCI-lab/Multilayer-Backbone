@@ -1,12 +1,12 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::ops::Add;
 
 #[must_use]
 pub fn multimin(dists: &[MultiDistance]) -> Vec<MultiDistance> {
     let mut minlist = Vec::new();
-
+    let mut found_smaller;
     for (i, t) in dists.iter().enumerate() {
-        let mut found_smaller = false;
+        found_smaller = false;
         for c in dists[(i + 1)..dists.len()].iter().chain(minlist.iter()) {
             if c <= t {
                 found_smaller = true;
@@ -55,11 +55,20 @@ impl PartialOrd for MultiDistance {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         let mut found_larger = false;
         let mut found_smaller = false;
-        for (key, rhs) in &other.total {
+
+        let keys = other
+            .total
+            .iter()
+            .chain(self.total.iter())
+            .map(|(k, _)| k)
+            .collect::<HashSet<&EdgeLayerID>>();
+
+        for key in keys {
             let lhs = *self.total.get(key).unwrap_or(&0.0);
-            if lhs < *rhs {
+            let rhs = *other.total.get(key).unwrap_or(&0.0);
+            if lhs < rhs {
                 found_larger = true;
-            } else if lhs > *rhs {
+            } else if lhs > rhs {
                 found_smaller = true;
             }
 
@@ -109,24 +118,51 @@ mod tests {
             total: HashMap::from([(layer1, 1.0), (layer2, 1.0)]),
         };
 
+        let m5 = MultiDistance {
+            total: HashMap::from([(layer2, 3.0)]),
+        };
+
+        // testing basic equalities
+        assert!(m5.partial_cmp(&m1).is_none());
+        assert!(m5.partial_cmp(&m2).is_none());
+        assert!(m5.partial_cmp(&m3).is_none());
+        assert!(m5.partial_cmp(&m4).is_none());
+        assert!(m1.partial_cmp(&m5).is_none());
+        assert!(m2.partial_cmp(&m5).is_none());
+        assert!(m3.partial_cmp(&m5).is_none());
+        assert!(m4.partial_cmp(&m5).is_none());
+        assert!(m1.partial_cmp(&m2).is_none());
+        assert!(m2.partial_cmp(&m1).is_none());
+        assert!(m1 < m3);
+        assert!(m1 > m4);
+        assert!(m2 < m3);
+        assert!(m2 > m4);
+        assert!(m4 < m3);
+        assert!(m3 > m1);
+        assert!(m4 < m1);
+        assert!(m3 > m2);
+        assert!(m4 < m2);
+        assert!(m3 > m4);
+
         let dists = vec![m1.clone(), m2.clone(), m3.clone(), m4.clone()];
         let dists2 = vec![m1.clone(), m2.clone(), m3.clone()];
         let dists3 = vec![m1.clone(), m1.clone(), m2.clone()];
         let mm = multimin(&dists);
         let mm2 = multimin(&dists2);
         let mm3 = multimin(&dists3);
+
+        // testing multimin stuff
         assert_eq!(multimin(&Vec::new()), Vec::new());
-        assert_eq!(mm, vec![m4.clone()]);
-        assert_eq!(mm2, vec![m1.clone(), m2.clone()]);
-        assert_eq!(mm3, vec![m1.clone(), m2.clone()]);
+        assert_eq!(&mm, &vec![m4.clone()]);
+        assert_eq!(&mm2, &vec![m1.clone(), m2.clone()]);
+        assert_eq!(&mm3, &vec![m1.clone(), m2.clone()]);
+        assert_eq!(
+            &vec![m5.clone(), m1.clone()],
+            &multimin(&[m5.clone(), m1.clone()])
+        );
+        assert_eq!(&vec![m1.clone(), m5.clone()], &multimin(&[m1.clone(), m5]));
 
-        assert!(m1.partial_cmp(&m2).is_none());
-        assert!(m1 < m3);
-        assert!(m1 > m4);
-        assert!(m2 < m3);
-        assert!(m2 > m4);
-        assert!(m4 < m3);
-
+        // testing addition
         assert_eq!(m1 + m2, m3 + m4);
     }
 }

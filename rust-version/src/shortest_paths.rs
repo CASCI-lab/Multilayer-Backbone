@@ -80,7 +80,7 @@ mod tests {
     use super::*;
     use crate::multidistance::EdgeLayerID;
     #[test]
-    fn test_simple_shortest_path() {
+    fn test_simple_single_layer_shortest_path() {
         let layer1 = EdgeLayerID {
             layer_start: 0,
             layer_end: 0,
@@ -88,15 +88,15 @@ mod tests {
         };
 
         let m01 = MultiDistance {
-            total: HashMap::from([(layer1, 1.0), (layer1, 2.0)]),
+            total: HashMap::from([(layer1, 2.0)]),
         };
 
         let m02 = MultiDistance {
-            total: HashMap::from([(layer1, 1.0), (layer1, 4.0)]),
+            total: HashMap::from([(layer1, 4.0)]),
         };
 
         let m12 = MultiDistance {
-            total: HashMap::from([(layer1, 1.0), (layer1, 2.0)]),
+            total: HashMap::from([(layer1, 2.0)]),
         };
 
         let edge_list: HashMap<NodeID, Vec<(NodeID, MultiDistance)>> = HashMap::from([
@@ -109,6 +109,60 @@ mod tests {
 
         let expected: HashMap<NodeID, Vec<MultiDistance>> =
             HashMap::from([(NodeID(1), vec![m01]), (NodeID(2), vec![m02])]);
+
+        let shortest_paths = parteto_shortest_distance_from_source(NodeID(0), &edge_list);
+
+        assert_eq!(expected, shortest_paths);
+    }
+
+    #[test]
+    fn test_simple_multilayer_shortest_path() {
+        let layer_0_0 = EdgeLayerID {
+            layer_start: 0,
+            layer_end: 0,
+            layer_weight_index: 0,
+        };
+        let layer_1_1 = EdgeLayerID {
+            layer_start: 1,
+            layer_end: 1,
+            layer_weight_index: 0,
+        };
+        let layer_0_1 = EdgeLayerID {
+            layer_start: 0,
+            layer_end: 1,
+            layer_weight_index: 0,
+        };
+
+        let m01 = MultiDistance {
+            total: HashMap::from([(layer_0_0, 1.0)]),
+        };
+
+        let m03 = MultiDistance {
+            total: HashMap::from([(layer_0_1, 2.0)]),
+        };
+
+        let m12 = MultiDistance {
+            total: HashMap::from([(layer_0_1, 1.0)]),
+        };
+
+        let m23 = MultiDistance {
+            total: HashMap::from([(layer_1_1, 1.0)]),
+        };
+
+        let edge_list: HashMap<NodeID, Vec<(NodeID, MultiDistance)>> = HashMap::from([
+            (
+                NodeID(0),
+                vec![(NodeID(1), m01.clone()), (NodeID(3), m03.clone())],
+            ),
+            (NodeID(1), vec![(NodeID(2), m12.clone())]),
+            (NodeID(2), vec![(NodeID(3), m23.clone())]),
+        ]);
+
+        let expected: HashMap<NodeID, Vec<MultiDistance>> = HashMap::from([
+            (NodeID(1), vec![m01.clone()]),
+            (NodeID(2), vec![m01.clone() + m12.clone()]),
+            (NodeID(3), vec![m01 + m12 + m23, m03]),
+        ]);
 
         let shortest_paths = parteto_shortest_distance_from_source(NodeID(0), &edge_list);
 
