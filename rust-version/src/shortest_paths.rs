@@ -2,7 +2,7 @@ use crate::multidistance::{multimin, MultiDistance};
 use std::collections::HashMap;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-pub struct NodeID(usize);
+pub struct NodeID(pub usize);
 
 struct FringeNode {
     node_id: NodeID,
@@ -156,6 +156,7 @@ mod tests {
             ),
             (NodeID(1), vec![(NodeID(2), m12.clone())]),
             (NodeID(2), vec![(NodeID(3), m23.clone())]),
+            (NodeID(3), vec![]),
         ]);
 
         let expected: HashMap<NodeID, Vec<MultiDistance>> = HashMap::from([
