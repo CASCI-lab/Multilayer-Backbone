@@ -1,14 +1,16 @@
 use crate::{
-    multidistance::MultiDistance,
-    shortest_paths::{parteto_shortest_distance_from_source, NodeID},
+    multidistance::{MultiDistance, NodeID},
+    shortest_paths::parteto_shortest_distance_from_source,
 };
-use std::collections::HashMap;
-
-type MultidistanceClosure = HashMap<NodeID, HashMap<NodeID, Vec<MultiDistance>>>;
+use std::{collections::HashMap, hash::BuildHasher};
 
 #[allow(clippy::module_name_repetitions)]
-pub fn multidistance_closure(
-    edge_list: &HashMap<NodeID, Vec<(NodeID, MultiDistance)>>,
+pub type MultidistanceClosure = HashMap<NodeID, HashMap<NodeID, Vec<MultiDistance>>>;
+
+#[allow(clippy::module_name_repetitions)]
+#[must_use]
+pub fn multidistance_closure<S: BuildHasher>(
+    edge_list: &HashMap<NodeID, Vec<(NodeID, MultiDistance)>, S>,
 ) -> MultidistanceClosure {
     let mut closure_edges: MultidistanceClosure = HashMap::new();
 

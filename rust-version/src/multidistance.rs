@@ -1,6 +1,9 @@
 use std::collections::{HashMap, HashSet};
 use std::ops::Add;
 
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub struct NodeID(pub usize);
+
 #[must_use]
 pub fn multimin(dists: &[MultiDistance]) -> Vec<MultiDistance> {
     let mut minlist = Vec::new();

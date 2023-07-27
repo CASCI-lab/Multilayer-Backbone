@@ -1,17 +1,15 @@
-use crate::multidistance::{multimin, MultiDistance};
-use std::collections::HashMap;
-
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-pub struct NodeID(pub usize);
+use crate::multidistance::{multimin, MultiDistance, NodeID};
+use std::{collections::HashMap, hash::BuildHasher};
 
 struct FringeNode {
     node_id: NodeID,
     dists: Vec<MultiDistance>,
 }
 
-pub fn parteto_shortest_distance_from_source(
+#[must_use]
+pub fn parteto_shortest_distance_from_source<S: BuildHasher>(
     source: NodeID,
-    edge_list: &HashMap<NodeID, Vec<(NodeID, MultiDistance)>>,
+    edge_list: &HashMap<NodeID, Vec<(NodeID, MultiDistance)>, S>,
 ) -> HashMap<NodeID, Vec<MultiDistance>> {
     let mut dist_map: HashMap<NodeID, Vec<MultiDistance>> = HashMap::new();
 
@@ -24,9 +22,7 @@ pub fn parteto_shortest_distance_from_source(
         dists: vec![initial_dist.clone()],
     }];
 
-    while !fringe.is_empty() {
-        let fringe_node = fringe.pop().unwrap();
-
+    while let Some(fringe_node) = fringe.pop() {
         // it would be more efficient to handle in-map and not-in-map cases
         // separately; can fix this later
         let fringe_dist = dist_map
@@ -44,7 +40,10 @@ pub fn parteto_shortest_distance_from_source(
             for (child, edge) in neighbors {
                 let child_dist = seen.entry(*child).or_insert(Vec::new());
 
-                let mut fringe_to_child_dist = dist_map.get(&fringe_node.node_id).unwrap().clone();
+                let mut fringe_to_child_dist = dist_map
+                    .get(&fringe_node.node_id)
+                    .unwrap_or(&vec![MultiDistance::default()])
+                    .clone();
                 fringe_to_child_dist = fringe_to_child_dist
                     .iter()
                     .map(|x| x.clone() + edge.clone())
