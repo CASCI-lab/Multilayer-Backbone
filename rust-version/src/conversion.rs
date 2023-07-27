@@ -4,7 +4,7 @@ use crate::multidistance::{EdgeLayerID, MultiDistance, NodeID};
 
 #[must_use]
 pub fn edges_to_multiplex(
-    edges: &[(usize, usize, usize, usize, f32)],
+    edges: &[(usize, usize, usize, usize, usize, f32)],
 ) -> HashMap<NodeID, Vec<(NodeID, MultiDistance)>> {
     let mut multiplex = HashMap::new();
     for edge in edges {
@@ -13,12 +13,10 @@ pub fn edges_to_multiplex(
         let layer = EdgeLayerID {
             layer_start: edge.2,
             layer_end: edge.3,
-            layer_weight_index: 0,
+            layer_weight_index: edge.4,
         };
-        let edge_weight = edge.4;
-
         let multidist = MultiDistance {
-            total: HashMap::from([(layer, edge_weight)]),
+            total: HashMap::from([(layer, edge.5)]),
         };
 
         multiplex
@@ -80,10 +78,10 @@ mod tests {
         ]);
 
         let multiplex = edges_to_multiplex(&[
-            (0, 1, 0, 0, 1.0),
-            (0, 3, 0, 1, 2.0),
-            (1, 2, 0, 1, 1.0),
-            (2, 3, 1, 1, 1.0),
+            (0, 1, 0, 0, 0, 1.0),
+            (0, 3, 0, 1, 0, 2.0),
+            (1, 2, 0, 1, 0, 1.0),
+            (2, 3, 1, 1, 0, 1.0),
         ]);
         assert_eq!(edge_list_expected, multiplex);
     }
