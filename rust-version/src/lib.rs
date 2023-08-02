@@ -12,6 +12,23 @@ pub use shortest_paths::*;
 
 pub type MultilayerBackbone = HashMap<NodeID, HashMap<NodeID, Vec<MultiDistance>>>;
 
+use pyo3::prelude::*;
+
+#[pymodule]
+fn backbone(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(distance_closure_py, m)?)?;
+
+    Ok(())
+}
+
+#[pyfunction]
+#[allow(clippy::needless_pass_by_value)] // this makes it easier to deal with pyO3
+fn distance_closure_py(
+    edges: Vec<(usize, usize, usize, usize, usize, f32)>,
+) -> MultidistanceClosure {
+    distance_closure(&edges)
+}
+
 /// The function `distance_closure` takes a list of edges and returns a
 /// multidistance closure.
 ///

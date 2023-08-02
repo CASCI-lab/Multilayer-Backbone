@@ -1,7 +1,8 @@
+use pyo3::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::ops::Add;
-
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[pyclass]
 pub struct NodeID(pub usize);
 
 #[must_use]
@@ -31,6 +32,7 @@ pub struct EdgeLayerID {
 }
 
 #[derive(PartialEq, Clone, Debug, Default)]
+#[pyclass]
 pub struct MultiDistance {
     pub total: HashMap<EdgeLayerID, f32>,
 }
@@ -42,6 +44,7 @@ impl MultiDistance {
         }
     }
 }
+impl Eq for MultiDistance {}
 
 impl Add for MultiDistance {
     type Output = Self;

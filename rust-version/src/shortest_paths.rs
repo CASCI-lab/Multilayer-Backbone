@@ -29,7 +29,7 @@ pub fn parteto_shortest_distance_from_source<S: BuildHasher>(
             .entry(fringe_node.node_id)
             .or_insert(Vec::new())
             .clone();
-        // let old_dist = dist_map.get_mut(&fringe_node.node_id).unwrap();
+
         let mut old_dist = fringe_node.dists;
         let mut new_dist = fringe_dist;
         new_dist.append(&mut old_dist);
@@ -48,16 +48,18 @@ pub fn parteto_shortest_distance_from_source<S: BuildHasher>(
                     .iter()
                     .map(|x| x.clone() + edge.clone())
                     .collect();
-                fringe_to_child_dist.append(child_dist);
+                fringe_to_child_dist.extend(child_dist.iter().cloned());
                 fringe_to_child_dist = multimin(&fringe_to_child_dist);
 
-                let push_to_fringe = if child_dist.is_empty() {
-                    true
-                } else {
-                    let seen_rep = &child_dist[0].clone(); // all are incomparable
-                    let fringe_rep = &fringe_to_child_dist[0].clone(); // all are incomparable
-                    fringe_rep < seen_rep
-                };
+                let push_to_fringe = fringe_to_child_dist != *child_dist;
+
+                // let push_to_fringe = if child_dist.is_empty() {
+                //     true
+                // } else {
+                //     let seen_rep = &child_dist[0].clone(); // all are incomparable
+                //     let fringe_rep = &fringe_to_child_dist[0].clone(); // all are incomparable
+                //     fringe_rep < seen_rep
+                // };
                 *child_dist = fringe_to_child_dist;
                 if push_to_fringe {
                     fringe.push(FringeNode {
@@ -163,6 +165,42 @@ mod tests {
             (NodeID(2), vec![m01.clone() + m12.clone()]),
             (NodeID(3), vec![m01 + m12 + m23, m03]),
         ]);
+
+        let shortest_paths = parteto_shortest_distance_from_source(NodeID(0), &edge_list);
+
+        assert_eq!(expected, shortest_paths);
+    }
+
+    #[test]
+    fn test_simple_cycle_shortest_path() {
+        let layer1 = EdgeLayerID {
+            layer_start: 0,
+            layer_end: 0,
+            layer_weight_index: 0,
+        };
+
+        let m0 = MultiDistance {
+            total: HashMap::from([(layer1, 2.0)]),
+        };
+
+        let m1 = MultiDistance {
+            total: HashMap::from([(layer1, 4.0)]),
+        };
+
+        let edge_list: HashMap<NodeID, Vec<(NodeID, MultiDistance)>> = HashMap::from([
+            (
+                NodeID(0),
+                vec![(NodeID(1), m0.clone()), (NodeID(2), m1.clone())],
+            ),
+            (
+                NodeID(1),
+                vec![(NodeID(0), m0.clone()), (NodeID(2), m0.clone())],
+            ),
+            (NodeID(2), vec![(NodeID(1), m0.clone())]),
+        ]);
+
+        let expected: HashMap<NodeID, Vec<MultiDistance>> =
+            HashMap::from([(NodeID(1), vec![m0]), (NodeID(2), vec![m1])]);
 
         let shortest_paths = parteto_shortest_distance_from_source(NodeID(0), &edge_list);
 
