@@ -36,44 +36,42 @@ G_L2.add_edges_from(
     ]
 )
 
+graphs = [G_L0, G_L1, G_L2]
+
+
+ER0 = nx.erdos_renyi_graph(15, 0.05)
+ER1 = nx.erdos_renyi_graph(15, 0.04)
+ER2 = nx.erdos_renyi_graph(15, 0.03)
+ER3 = nx.erdos_renyi_graph(15, 0.1)
+ER4 = nx.erdos_renyi_graph(15, 0.1)
+ER5 = nx.erdos_renyi_graph(15, 0.1)
+
+graphs = [ER0, ER1, ER2, ER3, ER4, ER5]
+# graphs = [ER0]
+for ER in graphs:
+    for u, v in ER.edges():
+        ER.edges[(u, v)]["weight"] = u + v
 edgelist = []
 interweight = 0.000
 
 index = 0
-for node in G_L0.nodes:
-    G_L0.nodes[node]["index"] = index
-    index += 1
-for node in G_L1.nodes:
-    G_L1.nodes[node]["index"] = index
-    index += 1
-    if node in G_L0.nodes:
-        edgelist.append((index, G_L0.nodes[node]["index"], 1, 0, 0, interweight))
-        edgelist.append((G_L0.nodes[node]["index"], index, 0, 1, 0, interweight))
-for node in G_L2.nodes:
-    G_L2.nodes[node]["index"] = index
-    index += 1
+for i, G in enumerate(graphs):
+    for node in G.nodes:
+        G.nodes[node]["index"] = index
+        index += 1
 
-    if node in G_L0.nodes:
-        edgelist.append((index, G_L0.nodes[node]["index"], 2, 0, 0, interweight))
-        edgelist.append((G_L0.nodes[node]["index"], index, 0, 2, 0, interweight))
-    if node in G_L1.nodes:
-        edgelist.append((index, G_L1.nodes[node]["index"], 2, 1, 0, interweight))
-        edgelist.append((G_L1.nodes[node]["index"], index, 1, 2, 0, interweight))
+        for j, Gp in enumerate(graphs[0:i]):
+            if node in Gp.nodes:
+                edgelist.append((index, Gp.nodes[node]["index"], i, j, 0, interweight))
+                edgelist.append((Gp.nodes[node]["index"], index, j, i, 0, interweight))
 
-for u, v, d in G_L0.edges(data=True):
-    edgelist.append(
-        (G_L0.nodes[u]["index"], G_L0.nodes[v]["index"], 0, 0, 0, d["weight"])
-    )
-for u, v, d in G_L1.edges(data=True):
-    edgelist.append(
-        (G_L1.nodes[u]["index"], G_L1.nodes[v]["index"], 1, 1, 0, d["weight"])
-    )
-for u, v, d in G_L2.edges(data=True):
-    edgelist.append(
-        (G_L2.nodes[u]["index"], G_L2.nodes[v]["index"], 2, 2, 0, d["weight"])
-    )
+    for u, v, d in G.edges(data=True):
+        edgelist.append(
+            (G.nodes[u]["index"], G.nodes[v]["index"], 0, 0, 0, d["weight"])
+        )
 
-print(edgelist)
+# print(edgelist)
 
-closure = bb.distance_closure_py(edgelist)
-print(closure)
+# closure = bb.distance_closure_py(edgelist)
+# print(closure)
+multilayer_backbone = bb.backbone_py(edgelist)
