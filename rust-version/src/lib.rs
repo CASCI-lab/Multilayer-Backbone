@@ -12,6 +12,19 @@ pub use shortest_paths::*;
 
 pub type MultilayerBackbone = HashMap<NodeID, HashMap<NodeID, Vec<MultiDistance>>>;
 
+/// The function `distance_closure` takes a list of edges and returns a
+/// multidistance closure.
+///
+/// # Arguments
+///
+/// * `edges` - A slice of tuples representing edges in a multigraph. Each tuple
+///   contains six elements: source node, target node, source layer, target
+///   layer, layer wieght index, and edge weight.
+///
+/// # Returns
+///
+/// The function `distance_closure` returns a value of type
+/// `MultidistanceClosure`.
 #[must_use]
 pub fn distance_closure(
     edges: &[(usize, usize, usize, usize, usize, f32)],
@@ -20,8 +33,21 @@ pub fn distance_closure(
     multidistance_closure(&multiplex)
 }
 
+/// The function `multilayer_backbone` takes a list of edges and returns a multilayer backbone, which is
+/// a subset of the edges that satisfy certain conditions.
+///
 /// # Panics
-/// Will panic if the computed closure does not contain an entry for a direct edge.
+/// * Will panic if the computed closure does not contain an entry for a direct edge.
+///
+/// # Arguments
+///
+/// * `edges` - A slice of tuples representing edges in a multigraph. Each tuple
+///   contains six elements: source node, target node, source layer, target
+///   layer, layer wieght index, and edge weight.
+///
+/// # Returns
+///
+/// The function `multilayer_backbone` returns a `MultilayerBackbone` object.
 #[must_use]
 pub fn multilayer_backbone(
     edges: &[(usize, usize, usize, usize, usize, f32)],
