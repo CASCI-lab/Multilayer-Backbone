@@ -31,7 +31,7 @@ pub fn edges_to_multiplex(
 
 #[cfg(test)]
 mod tests {
-    use crate::{closure, parteto_shortest_distance_from_source};
+    use crate::closure;
 
     use super::*;
     #[allow(clippy::redundant_clone)]

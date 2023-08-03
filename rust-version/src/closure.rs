@@ -2,24 +2,30 @@ use crate::{
     multidistance::{MultiDistance, NodeID},
     shortest_paths::parteto_shortest_distance_from_source,
 };
+use rayon::prelude::*;
 use std::{collections::HashMap, hash::BuildHasher};
-
 #[allow(clippy::module_name_repetitions)]
 pub type MultidistanceClosure = HashMap<NodeID, HashMap<NodeID, Vec<MultiDistance>>>;
 
 #[allow(clippy::module_name_repetitions)]
 #[must_use]
-pub fn multidistance_closure<S: BuildHasher>(
+pub fn multidistance_closure<S: BuildHasher + std::marker::Sync>(
     edge_list: &HashMap<NodeID, Vec<(NodeID, MultiDistance)>, S>,
 ) -> MultidistanceClosure {
-    let mut closure_edges: MultidistanceClosure = HashMap::new();
-
-    for source in edge_list.keys() {
-        let pareto_dists = parteto_shortest_distance_from_source(*source, edge_list);
-        closure_edges.insert(*source, pareto_dists);
-    }
-
-    closure_edges
+    edge_list
+        .par_iter()
+        .map(|(source, _)| {
+            let pareto_dists = parteto_shortest_distance_from_source(*source, edge_list);
+            let mut dist_map = HashMap::new();
+            dist_map.insert(*source, pareto_dists);
+            dist_map
+        })
+        .reduce(HashMap::new, |a, b| {
+            b.iter().fold(a, |mut acc, (k, v)| {
+                acc.entry(*k).or_insert(v.clone());
+                acc
+            })
+        })
 }
 
 #[cfg(test)]

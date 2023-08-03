@@ -2,8 +2,15 @@ use pyo3::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::ops::Add;
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-#[pyclass]
 pub struct NodeID(pub usize);
+
+impl IntoPy<PyObject> for NodeID {
+    fn into_py(self, py: Python<'_>) -> PyObject {
+        let NodeID(node_id_val) = self;
+        // PyObject::from(PyInt::new(py, node_id_val))
+        node_id_val.into_py(py)
+    }
+}
 
 #[must_use]
 pub fn multimin(dists: &[MultiDistance]) -> Vec<MultiDistance> {
@@ -31,8 +38,13 @@ pub struct EdgeLayerID {
     pub layer_weight_index: usize,
 }
 
+impl IntoPy<PyObject> for EdgeLayerID {
+    fn into_py(self, py: Python<'_>) -> PyObject {
+        ((self.layer_start, self.layer_end), self.layer_weight_index).into_py(py)
+    }
+}
+
 #[derive(PartialEq, Clone, Debug, Default)]
-#[pyclass]
 pub struct MultiDistance {
     pub total: HashMap<EdgeLayerID, f32>,
 }
@@ -40,10 +52,20 @@ pub struct MultiDistance {
 impl MultiDistance {
     pub fn add_to_self(&mut self, rhs: &Self) {
         for (key, value) in &rhs.total {
-            *self.total.entry(*key).or_insert(0.0) += value;
+            #[allow(clippy::float_cmp)] // this is ok because we only care about literal zero
+            if value != &0.0 {
+                *self.total.entry(*key).or_insert(0.0) += value;
+            }
         }
     }
 }
+
+impl IntoPy<PyObject> for MultiDistance {
+    fn into_py(self, py: Python<'_>) -> PyObject {
+        self.total.into_py(py)
+    }
+}
+
 impl Eq for MultiDistance {}
 
 impl Add for MultiDistance {
