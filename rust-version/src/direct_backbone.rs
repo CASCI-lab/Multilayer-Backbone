@@ -1,23 +1,23 @@
 use crate::{
     is_metric_in_n_steps,
     multidistance::{MultiDistance, NodeID},
-    EdgeMap,
+    multimin, reverse_edges, EdgeMap,
 };
 use rayon::prelude::*;
 use std::{
-    collections::{hash_map::RandomState, HashMap},
+    collections::{hash_map::RandomState, HashMap, HashSet},
     hash::BuildHasher,
 };
 pub type MultilayerBackbone = HashMap<NodeID, HashMap<NodeID, Vec<MultiDistance>>>;
 
-pub fn n_step_backbone_structural<S: BuildHasher + std::marker::Sync + Default>(
+pub fn structural_backbone<S: BuildHasher + std::marker::Sync + Default>(
     edge_map: &EdgeMap<S>,
-    n_steps: usize,
+    n_steps: Option<usize>, // if None, computes full structural backbone
 ) -> EdgeMap<RandomState> {
-    // let mut bb_edges = HashMap::default();
-
-    let bb_map = edge_map
+    edge_map
         .par_iter()
+        // map each key value pair to a hashmap that contains only each source
+        // considered and the neighbors that are metric up to n steps
         .map(
             |(source, neighbors)| -> HashMap<NodeID, Vec<(NodeID, MultiDistance)>> {
                 let mut neighbor_edge_map = HashMap::default();
@@ -29,28 +29,127 @@ pub fn n_step_backbone_structural<S: BuildHasher + std::marker::Sync + Default>(
                     })
                     .collect();
                 neighbor_edge_map.insert(*source, n_step_metric_neighbors);
-                neighbor_edge_map
+                neighbor_edge_map // has only source as a key
             },
         )
+        // merge the hashmaps (which each have only one key) into one hashmap
+        // with a key for each node
         .reduce(HashMap::new, |a, b| {
             b.iter().fold(a, |mut acc, (k, v)| {
                 acc.entry(*k).or_insert(v.clone());
                 acc
             })
-        });
-    bb_map
+        })
+}
 
-    // for (source, neighbors) in edge_map.iter() {
-    //     let n_step_metric_neighbors: Vec<(NodeID, MultiDistance)> = neighbors
-    //         .par_iter()
-    //         .map(std::clone::Clone::clone)
-    //         .filter(|(target, _)| {
-    //             is_metric_in_n_steps(edge_map, *source, *target, n_steps).unwrap_or(false)
-    //         })
-    //         .collect();
+fn one_step_metric_edges(edge_map: &EdgeMap<RandomState>) -> HashSet<(NodeID, NodeID)> {
+    // let mut known_metric_edges = HashSet::new();
 
-    //     bb_edges.insert(*source, n_step_metric_neighbors);
+    // for (source, neighbors) in edge_map.iter().chain(reverse_edges(edge_map).iter()) {
+    //     let out_edges: Vec<MultiDistance> =
+    //         neighbors.iter().map(|(_, dist)| dist.clone()).collect();
+
+    //     let multimin_for_source = multimin(&out_edges);
+
+    //     known_metric_edges.extend(
+    //         neighbors
+    //             .iter()
+    //             .filter(|(_, md)| multimin_for_source.contains(md))
+    //             .map(|(target, _)| (*source, *target)),
+    //     );
     // }
 
-    // bb_edges
+    // known_metric_edges
+
+    let forward = edge_map.par_iter();
+    let binding = reverse_edges(edge_map);
+    let reverse = binding.par_iter();
+    let combined = forward.chain(reverse);
+
+    // combined
+    //     .map(|(source, neighbors)| -> HashSet<(NodeID, NodeID)> {
+    //         let out_edges: Vec<MultiDistance> =
+    //             neighbors.iter().map(|(_, dist)| dist.clone()).collect();
+
+    //         let multimin_for_source = multimin(&out_edges);
+
+    //         HashSet::from_par_iter(
+    //             neighbors
+    //                 .par_iter()
+    //                 .filter(|(_, md)| multimin_for_source.contains(md))
+    //                 .map(|(target, _)| (*source, *target)),
+    //         )
+    //     })
+    //     .flatten()
+    //     .collect()
+
+    min_edges_with_condition(combined, |_, _, _| true)
+}
+
+fn min_edges_with_condition<'a>(
+    edge_iter: impl ParallelIterator<Item = (&'a NodeID, &'a Vec<(NodeID, MultiDistance)>)>,
+    condition: impl Fn(&'a NodeID, &'a NodeID, &'a MultiDistance) -> bool + Send + Sync + 'a,
+) -> HashSet<(NodeID, NodeID)> {
+    edge_iter
+        .map(|(source, neighbors)| -> HashSet<(NodeID, NodeID)> {
+            let out_edges: Vec<MultiDistance> = neighbors
+                .iter()
+                .filter(|(t, d)| condition(source, t, d))
+                .map(|(_, dist)| dist.clone())
+                .collect();
+
+            let multimin_for_source = multimin(&out_edges);
+
+            HashSet::from_par_iter(
+                neighbors
+                    .par_iter()
+                    .filter(|(_, md)| multimin_for_source.contains(md))
+                    .map(|(target, _)| (*source, *target)),
+            )
+        })
+        .flatten()
+        .collect()
+}
+
+fn two_step_metric_edges(
+    edge_map: &EdgeMap<RandomState>,
+    known_metric_edges: &mut HashSet<(NodeID, NodeID)>,
+) {
+    for (source, neighbors) in edge_map.iter() {
+        let mut two_hop_known_metric_dists = Vec::new();
+        for (s, target) in known_metric_edges.iter() {
+            if s != source {
+                continue;
+            }
+            if let Some((_, dist)) = neighbors.iter().find(|(t, _)| t == target) {
+                for (_, dist2) in edge_map.get(target).unwrap_or(&Vec::new()) {
+                    two_hop_known_metric_dists.push(dist.clone() + dist2.clone());
+                }
+            }
+        }
+
+        let mut source_edge_map = HashMap::new();
+        source_edge_map.insert(*source, neighbors.clone());
+
+        let mut continue_search = true;
+        while continue_search {
+            continue_search = false;
+            let remainder = min_edges_with_condition(source_edge_map.par_iter(), |s, t, _| {
+                !known_metric_edges.contains(&(*s, *t))
+            });
+
+            for (_, target) in remainder {
+                // remainder is constructed so that all edges begin as `source`
+                if let Some((_, dist)) = neighbors.iter().find(|(t, _)| *t == target) {
+                    if two_hop_known_metric_dists
+                        .iter()
+                        .all(|d2| d2 > dist || d2.partial_cmp(dist).is_none())
+                    {
+                        known_metric_edges.insert((*source, target));
+                        continue_search = true;
+                    }
+                }
+            }
+        }
+    }
 }

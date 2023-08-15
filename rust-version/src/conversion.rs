@@ -1,11 +1,17 @@
-use std::collections::HashMap;
+use std::{
+    collections::{hash_map::RandomState, HashMap},
+    hash::BuildHasher,
+};
 
-use crate::multidistance::{EdgeLayerID, MultiDistance, NodeID};
+use crate::{
+    multidistance::{EdgeLayerID, MultiDistance, NodeID},
+    EdgeMap,
+};
 
 #[must_use]
 pub fn edges_to_multiplex(
     edges: &[(usize, usize, usize, usize, usize, f32)],
-) -> HashMap<NodeID, Vec<(NodeID, MultiDistance)>> {
+) -> EdgeMap<RandomState> {
     let mut multiplex = HashMap::new();
     for edge in edges {
         let source = NodeID(edge.0);
@@ -25,8 +31,23 @@ pub fn edges_to_multiplex(
             .push((target, multidist));
         multiplex.entry(target).or_insert(vec![]);
     }
-
     multiplex
+}
+
+#[must_use]
+pub fn reverse_edges(edge_map: &EdgeMap<RandomState>) -> EdgeMap<RandomState> {
+    let mut reverse_edge_map = HashMap::default();
+
+    for (source, neighbors) in edge_map {
+        for (target, multidist) in neighbors {
+            reverse_edge_map
+                .entry(*target)
+                .or_insert(vec![])
+                .push((*source, multidist.clone()));
+        }
+    }
+
+    reverse_edge_map
 }
 
 #[cfg(test)]
