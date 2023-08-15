@@ -1,16 +1,19 @@
+mod bfs_tools;
 mod closure;
 mod conversion;
+mod direct_backbone;
 mod multidistance;
 mod shortest_paths;
 
 use std::collections::HashMap;
 
+pub use bfs_tools::*;
 pub use closure::*;
 pub use conversion::*;
+pub use direct_backbone::*;
 pub use multidistance::*;
 pub use shortest_paths::*;
-
-pub type MultilayerBackbone = HashMap<NodeID, HashMap<NodeID, Vec<MultiDistance>>>;
+// pub type MultilayerBackbone = HashMap<NodeID, HashMap<NodeID, Vec<MultiDistance>>>;
 
 use pyo3::prelude::*;
 

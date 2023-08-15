@@ -6,6 +6,7 @@
 .mypy*
 venv
 rmlbb
+bbrust-dev
 
 # rust stuff
 # will have compiled files and executables

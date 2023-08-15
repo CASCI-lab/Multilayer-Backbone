@@ -1,4 +1,5 @@
 use crate::{
+    bfs_tools::EdgeMap,
     multidistance::{MultiDistance, NodeID},
     shortest_paths::parteto_shortest_distance_from_source,
 };
@@ -10,12 +11,12 @@ pub type MultidistanceClosure = HashMap<NodeID, HashMap<NodeID, Vec<MultiDistanc
 #[allow(clippy::module_name_repetitions)]
 #[must_use]
 pub fn multidistance_closure<S: BuildHasher + std::marker::Sync>(
-    edge_list: &HashMap<NodeID, Vec<(NodeID, MultiDistance)>, S>,
+    edge_map: &EdgeMap<S>,
 ) -> MultidistanceClosure {
-    edge_list
+    edge_map
         .par_iter()
         .map(|(source, _)| {
-            let pareto_dists = parteto_shortest_distance_from_source(*source, edge_list);
+            let pareto_dists = parteto_shortest_distance_from_source(*source, edge_map, None);
             let mut dist_map = HashMap::new();
             dist_map.insert(*source, pareto_dists);
             dist_map
@@ -67,7 +68,7 @@ mod tests {
             total: HashMap::from([(layer_1_1, 1.0)]),
         };
 
-        let edge_list: HashMap<NodeID, Vec<(NodeID, MultiDistance)>> = HashMap::from([
+        let edge_map: EdgeMap<_> = HashMap::from([
             (
                 NodeID(0),
                 vec![(NodeID(1), m01.clone()), (NodeID(3), m03.clone())],
@@ -100,7 +101,7 @@ mod tests {
             (NodeID(3), expected_from_3),
         ]);
 
-        let closure = multidistance_closure(&edge_list);
+        let closure = multidistance_closure(&edge_map);
 
         assert_eq!(expected, closure);
     }

@@ -1,15 +1,23 @@
-use crate::multidistance::{multimin, MultiDistance, NodeID};
-use std::{collections::HashMap, hash::BuildHasher};
+use crate::{
+    bfs_tools::EdgeMap,
+    multidistance::{multimin, MultiDistance, NodeID},
+};
+use std::{
+    collections::{HashMap, VecDeque},
+    hash::BuildHasher,
+};
 
 struct FringeNode {
     node_id: NodeID,
     dists: Vec<MultiDistance>,
+    depth: usize,
 }
 
 #[must_use]
 pub fn parteto_shortest_distance_from_source<S: BuildHasher>(
     source: NodeID,
-    edge_list: &HashMap<NodeID, Vec<(NodeID, MultiDistance)>, S>,
+    edge_map: &EdgeMap<S>,
+    max_depth: Option<usize>,
 ) -> HashMap<NodeID, Vec<MultiDistance>> {
     let mut dist_map: HashMap<NodeID, Vec<MultiDistance>> = HashMap::new();
 
@@ -17,12 +25,16 @@ pub fn parteto_shortest_distance_from_source<S: BuildHasher>(
 
     let mut seen = HashMap::from([(source, vec![initial_dist.clone()])]);
 
-    let mut fringe = vec![FringeNode {
+    let mut fringe = VecDeque::from([FringeNode {
         node_id: source,
         dists: vec![initial_dist.clone()],
-    }];
+        depth: 0,
+    }]);
 
-    while let Some(fringe_node) = fringe.pop() {
+    while let Some(fringe_node) = fringe.pop_front() {
+        if max_depth.is_some_and(|d| fringe_node.depth >= d) {
+            continue;
+        }
         // it would be more efficient to handle in-map and not-in-map cases
         // separately; can fix this later
         let fringe_dist = dist_map
@@ -36,7 +48,7 @@ pub fn parteto_shortest_distance_from_source<S: BuildHasher>(
         new_dist = multimin(&new_dist);
         *dist_map.entry(fringe_node.node_id).or_default() = new_dist;
 
-        if let Some(neighbors) = edge_list.get(&fringe_node.node_id) {
+        if let Some(neighbors) = edge_map.get(&fringe_node.node_id) {
             for (child, edge) in neighbors {
                 let child_dist = seen.entry(*child).or_insert(Vec::new());
 
@@ -62,9 +74,10 @@ pub fn parteto_shortest_distance_from_source<S: BuildHasher>(
                 // };
                 *child_dist = fringe_to_child_dist;
                 if push_to_fringe {
-                    fringe.push(FringeNode {
+                    fringe.push_back(FringeNode {
                         node_id: *child,
                         dists: child_dist.clone(),
+                        depth: fringe_node.depth + 1,
                     });
                 }
             }
@@ -100,7 +113,7 @@ mod tests {
             total: HashMap::from([(layer1, 2.0)]),
         };
 
-        let edge_list: HashMap<NodeID, Vec<(NodeID, MultiDistance)>> = HashMap::from([
+        let edge_map: EdgeMap<_> = HashMap::from([
             (
                 NodeID(0),
                 vec![(NodeID(1), m01.clone()), (NodeID(2), m02.clone())],
@@ -111,7 +124,7 @@ mod tests {
         let expected: HashMap<NodeID, Vec<MultiDistance>> =
             HashMap::from([(NodeID(1), vec![m01]), (NodeID(2), vec![m02])]);
 
-        let shortest_paths = parteto_shortest_distance_from_source(NodeID(0), &edge_list);
+        let shortest_paths = parteto_shortest_distance_from_source(NodeID(0), &edge_map, None);
 
         assert_eq!(expected, shortest_paths);
     }
@@ -150,7 +163,7 @@ mod tests {
             total: HashMap::from([(layer_1_1, 1.0)]),
         };
 
-        let edge_list: HashMap<NodeID, Vec<(NodeID, MultiDistance)>> = HashMap::from([
+        let edge_map: HashMap<NodeID, Vec<(NodeID, MultiDistance)>> = HashMap::from([
             (
                 NodeID(0),
                 vec![(NodeID(1), m01.clone()), (NodeID(3), m03.clone())],
@@ -166,7 +179,7 @@ mod tests {
             (NodeID(3), vec![m01 + m12 + m23, m03]),
         ]);
 
-        let shortest_paths = parteto_shortest_distance_from_source(NodeID(0), &edge_list);
+        let shortest_paths = parteto_shortest_distance_from_source(NodeID(0), &edge_map, None);
 
         assert_eq!(expected, shortest_paths);
     }
@@ -187,7 +200,7 @@ mod tests {
             total: HashMap::from([(layer1, 4.0)]),
         };
 
-        let edge_list: HashMap<NodeID, Vec<(NodeID, MultiDistance)>> = HashMap::from([
+        let edge_map: EdgeMap<_> = HashMap::from([
             (
                 NodeID(0),
                 vec![(NodeID(1), m0.clone()), (NodeID(2), m1.clone())],
@@ -202,7 +215,7 @@ mod tests {
         let expected: HashMap<NodeID, Vec<MultiDistance>> =
             HashMap::from([(NodeID(1), vec![m0]), (NodeID(2), vec![m1])]);
 
-        let shortest_paths = parteto_shortest_distance_from_source(NodeID(0), &edge_list);
+        let shortest_paths = parteto_shortest_distance_from_source(NodeID(0), &edge_map, None);
 
         assert_eq!(expected, shortest_paths);
     }
