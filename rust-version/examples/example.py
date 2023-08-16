@@ -1,4 +1,6 @@
 # type: ignore
+import time
+
 import backbone as bb
 import networkx as nx
 
@@ -39,12 +41,12 @@ G_L2.add_edges_from(
 graphs = [G_L0, G_L1, G_L2]
 
 
-ER0 = nx.erdos_renyi_graph(15, 0.05)
-ER1 = nx.erdos_renyi_graph(15, 0.04)
-ER2 = nx.erdos_renyi_graph(15, 0.03)
+ER0 = nx.erdos_renyi_graph(50, 0.05)
+ER1 = nx.erdos_renyi_graph(100, 0.01)
+ER2 = nx.erdos_renyi_graph(45, 0.03)
 ER3 = nx.erdos_renyi_graph(15, 0.1)
 ER4 = nx.erdos_renyi_graph(15, 0.1)
-ER5 = nx.erdos_renyi_graph(15, 0.1)
+ER5 = nx.erdos_renyi_graph(10, 0.1)
 graphs = [ER0, ER1, ER2, ER3, ER4, ER5]
 for ER in graphs:
     for u, v in ER.edges():
@@ -92,17 +94,46 @@ for i, G in enumerate(graphs):
         edgelist.append(
             (G.nodes[u]["index"], G.nodes[v]["index"], i, i, 0, d["weight"])
         )
+# print("=" * 20)
+# print("CLOSURE")
+# print("- " * 10)
+# t0c = time.perf_counter_ns()
+# closure = bb.distance_closure_py(edgelist)
+# t1c = time.perf_counter_ns()
+# for u, d in sorted(closure.items()):
+#     for v, weight in sorted(d.items()):
+#         print(index_lookup[u], index_lookup[v], weight)
 print("=" * 20)
-print("CLOSURE")
+print("BACKBONE (CLOSURE)")
 print("- " * 10)
-closure = bb.distance_closure_py(edgelist)
-for u, d in sorted(closure.items()):
-    for v, weight in sorted(d.items()):
-        print(index_lookup[u], index_lookup[v], weight)
-print("=" * 20)
-print("BACKBONE")
-print("- " * 10)
+t0b = time.perf_counter_ns()
 multilayer_backbone = bb.backbone_py(edgelist)
+t1b = time.perf_counter_ns()
+bb_from_closure_edges = set()
 for u, d in sorted(multilayer_backbone.items()):
     for v, weight in sorted(d.items()):
         print(index_lookup[u], index_lookup[v], weight)
+        bb_from_closure_edges.add((u, v))
+
+print("=" * 20)
+print("BACKBONE (STRUCTURAL)")
+print("- " * 10)
+t0s = time.perf_counter_ns()
+multilayer_backbone_structural = bb.structural_backbone_py(edgelist)
+t1s = time.perf_counter_ns()
+bb_from_structure_edges = set()
+for u, d in sorted(multilayer_backbone_structural.items()):
+    for v, weight in sorted(d):
+        print(index_lookup[u], index_lookup[v], weight)
+        bb_from_structure_edges.add((u, v))
+
+print("=-" * 20)
+print("-=" * 20)
+if bb_from_closure_edges == bb_from_structure_edges:
+    print("Backbones match!")
+else:
+    print("Backbones don't match!")
+
+# print(f"Closure took {t1c-t0c:.5E}ns")
+print(f"Backbone from closure took {t1b-t0b:.5E}ns (includes closure)")
+print(f"Structural backbone took {t1s-t0s:.5E}ns")

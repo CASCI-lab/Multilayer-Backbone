@@ -2,13 +2,10 @@ use crate::{
     multidistance::{MultiDistance, NodeID},
     parteto_shortest_distance_from_source,
 };
-use std::{
-    collections::{HashMap, VecDeque},
-    error::Error,
-    hash::BuildHasher,
-};
+use std::{collections::HashMap, hash::BuildHasher};
 pub type EdgeMap<S> = HashMap<NodeID, Vec<(NodeID, MultiDistance)>, S>;
 
+#[allow(dead_code)]
 pub struct MissingEdgeError {
     source: NodeID,
     target: NodeID,

@@ -35,7 +35,9 @@ pub fn edges_to_multiplex(
 }
 
 #[must_use]
-pub fn reverse_edges(edge_map: &EdgeMap<RandomState>) -> EdgeMap<RandomState> {
+pub fn reverse_edges<S: BuildHasher + std::marker::Sync + Default>(
+    edge_map: &EdgeMap<S>,
+) -> EdgeMap<S> {
     let mut reverse_edge_map = HashMap::default();
 
     for (source, neighbors) in edge_map {

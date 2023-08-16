@@ -5,7 +5,7 @@ mod direct_backbone;
 mod multidistance;
 mod shortest_paths;
 
-use std::collections::HashMap;
+use std::collections::{hash_map::RandomState, HashMap};
 
 pub use bfs_tools::*;
 pub use closure::*;
@@ -21,6 +21,7 @@ use pyo3::prelude::*;
 fn backbone(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(distance_closure_py, m)?)?;
     m.add_function(wrap_pyfunction!(backbone_py, m)?)?;
+    m.add_function(wrap_pyfunction!(structural_backbone_py, m)?)?;
 
     Ok(())
 }
@@ -37,6 +38,15 @@ fn distance_closure_py(
 #[allow(clippy::needless_pass_by_value)] // this makes it easier to deal with pyO3
 fn backbone_py(edges: Vec<(usize, usize, usize, usize, usize, f32)>) -> MultilayerBackbone {
     multilayer_backbone(&edges)
+}
+
+#[pyfunction]
+#[allow(clippy::needless_pass_by_value)] // this makes it easier to deal with pyO3
+fn structural_backbone_py(
+    edges: Vec<(usize, usize, usize, usize, usize, f32)>,
+) -> EdgeMap<RandomState> {
+    let multiplex = edges_to_multiplex(&edges);
+    fast_backbone(&multiplex)
 }
 
 /// The function `distance_closure` takes a list of edges and returns a

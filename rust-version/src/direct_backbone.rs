@@ -10,6 +10,42 @@ use std::{
 };
 pub type MultilayerBackbone = HashMap<NodeID, HashMap<NodeID, Vec<MultiDistance>>>;
 
+pub fn fast_backbone<S: BuildHasher + std::marker::Sync + Default>(
+    edge_map: &EdgeMap<S>,
+) -> EdgeMap<RandomState> {
+    let bb_map = structural_backbone(edge_map, Some(2));
+
+    let mut known_metric_edges = one_step_metric_edges(edge_map);
+    two_step_metric_edges(edge_map, &mut known_metric_edges); // modifies `known_metric_edges` in-place
+
+    bb_map
+        .par_iter()
+        .map(
+            |(source, neighbors)| -> HashMap<NodeID, Vec<(NodeID, MultiDistance)>> {
+                let mut neighbor_edge_map = HashMap::default();
+                let metric_neighbors: Vec<(NodeID, MultiDistance)> = neighbors
+                    .par_iter()
+                    .map(std::clone::Clone::clone)
+                    .filter(|(target, _)| {
+                        known_metric_edges.contains(&(*source, *target))
+                            || is_metric_in_n_steps(&bb_map, *source, *target, None)
+                                .unwrap_or(false)
+                    })
+                    .collect();
+                neighbor_edge_map.insert(*source, metric_neighbors);
+                neighbor_edge_map // has only source as a key
+            },
+        )
+        // merge the hashmaps (which each have only one key) into one hashmap
+        // with a key for each node
+        .reduce(HashMap::new, |a, b| {
+            b.iter().fold(a, |mut acc, (k, v)| {
+                acc.entry(*k).or_insert(v.clone());
+                acc
+            })
+        })
+}
+
 pub fn structural_backbone<S: BuildHasher + std::marker::Sync + Default>(
     edge_map: &EdgeMap<S>,
     n_steps: Option<usize>, // if None, computes full structural backbone
@@ -42,7 +78,9 @@ pub fn structural_backbone<S: BuildHasher + std::marker::Sync + Default>(
         })
 }
 
-fn one_step_metric_edges(edge_map: &EdgeMap<RandomState>) -> HashSet<(NodeID, NodeID)> {
+fn one_step_metric_edges<S: BuildHasher + std::marker::Sync + Default>(
+    edge_map: &EdgeMap<S>,
+) -> HashSet<(NodeID, NodeID)> {
     // let mut known_metric_edges = HashSet::new();
 
     // for (source, neighbors) in edge_map.iter().chain(reverse_edges(edge_map).iter()) {
@@ -111,8 +149,8 @@ fn min_edges_with_condition<'a>(
         .collect()
 }
 
-fn two_step_metric_edges(
-    edge_map: &EdgeMap<RandomState>,
+fn two_step_metric_edges<S: BuildHasher + std::marker::Sync + Default>(
+    edge_map: &EdgeMap<S>,
     known_metric_edges: &mut HashSet<(NodeID, NodeID)>,
 ) {
     for (source, neighbors) in edge_map.iter() {
