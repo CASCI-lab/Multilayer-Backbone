@@ -16,7 +16,7 @@ pub fn multidistance_closure<S: BuildHasher + std::marker::Sync>(
     edge_map
         .par_iter()
         .map(|(source, _)| {
-            let pareto_dists = parteto_shortest_distance_from_source(*source, edge_map, None);
+            let pareto_dists = parteto_shortest_distance_from_source(*source, edge_map, None, None);
             let mut dist_map = HashMap::new();
             dist_map.insert(*source, pareto_dists);
             dist_map

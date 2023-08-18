@@ -42,8 +42,8 @@ graphs = [G_L0, G_L1, G_L2]
 
 
 ER0 = nx.erdos_renyi_graph(50, 0.05)
-ER1 = nx.erdos_renyi_graph(100, 0.01)
-ER2 = nx.erdos_renyi_graph(75, 0.03)
+ER1 = nx.erdos_renyi_graph(10, 0.01)
+ER2 = nx.erdos_renyi_graph(25, 0.03)
 ER3 = nx.erdos_renyi_graph(25, 0.1)
 ER4 = nx.erdos_renyi_graph(15, 0.1)
 ER5 = nx.erdos_renyi_graph(20, 0.1)
@@ -94,15 +94,13 @@ for i, G in enumerate(graphs):
         edgelist.append(
             (G.nodes[u]["index"], G.nodes[v]["index"], i, i, 0, d["weight"])
         )
-# print("=" * 20)
-# print("CLOSURE")
-# print("- " * 10)
-# t0c = time.perf_counter_ns()
-# closure = bb.distance_closure_py(edgelist)
-# t1c = time.perf_counter_ns()
-# for u, d in sorted(closure.items()):
-#     for v, weight in sorted(d.items()):
-#         print(index_lookup[u], index_lookup[v], weight)
+
+G_L0 = nx.read_graphml("examples/network.graphml")
+edgelist = []
+for u, v, d in G_L0.edges(data=True):
+    if d["distance"] > 0:
+        edgelist.append((int(u), int(v), 0, 0, 0, d["distance"]))
+
 print("=" * 20)
 print("BACKBONE (STRUCTURAL)")
 print("- " * 10)
@@ -115,26 +113,25 @@ for u, d in sorted(multilayer_backbone_structural.items()):
         print(index_lookup[u], index_lookup[v], weight)
         bb_from_structure_edges.add((u, v))
 
-print("=" * 20)
-print("BACKBONE (CLOSURE)")
-print("- " * 10)
-t0b = time.perf_counter_ns()
-multilayer_backbone = bb.backbone_py(edgelist)
-t1b = time.perf_counter_ns()
-bb_from_closure_edges = set()
-for u, d in sorted(multilayer_backbone.items()):
-    for v, weight in sorted(d.items()):
-        print(index_lookup[u], index_lookup[v], weight)
-        bb_from_closure_edges.add((u, v))
+# print("=" * 20)
+# print("BACKBONE (CLOSURE)")
+# print("- " * 10)
+# t0b = time.perf_counter_ns()
+# multilayer_backbone = bb.backbone_py(edgelist)
+# t1b = time.perf_counter_ns()
+# bb_from_closure_edges = set()
+# for u, d in sorted(multilayer_backbone.items()):
+#     for v, weight in sorted(d.items()):
+#         print(index_lookup[u], index_lookup[v], weight)
+#         bb_from_closure_edges.add((u, v))
 
 
-print("=-" * 20)
-print("-=" * 20)
-if bb_from_closure_edges == bb_from_structure_edges:
-    print("Backbones match!")
-else:
-    print("Backbones don't match!")
+# print("=-" * 20)
+# print("-=" * 20)
+# if bb_from_closure_edges == bb_from_structure_edges:
+#     print("Backbones match!")
+# else:
+#     print("Backbones don't match!")
 
-# print(f"Closure took {t1c-t0c:.5E}ns")
-print(f"Backbone from closure took {t1b-t0b:.5E}ns (includes closure)")
+# print(f"Backbone from closure took {t1b-t0b:.5E}ns (includes closure)")
 print(f"Structural backbone took {t1s-t0s:.5E}ns")

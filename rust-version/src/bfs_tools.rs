@@ -26,11 +26,18 @@ pub fn is_metric_in_n_steps<S: BuildHasher + std::marker::Sync + Default>(
 ) -> Result<bool, MissingEdgeError> {
     if let Some(neighbors) = edge_map.get(&source) {
         if let Some((_, test_edge_weight)) = neighbors.iter().find(|(node, _)| node == &target) {
-            let shortest_dists = parteto_shortest_distance_from_source(source, edge_map, n_steps);
+            let shortest_dists = parteto_shortest_distance_from_source(
+                source,
+                edge_map,
+                n_steps,
+                Some(&test_edge_weight.clone()),
+            );
 
-            let dist_to_target = shortest_dists.get(&target).unwrap();
+            if let Some(dist_to_target) = shortest_dists.get(&target) {
+                return Ok(dist_to_target.iter().any(|md| test_edge_weight == md));
+            }
 
-            return Ok(dist_to_target.iter().any(|md| test_edge_weight == md));
+            return Ok(false);
         }
     }
     Err(MissingEdgeError { source, target })

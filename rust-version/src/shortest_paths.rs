@@ -19,6 +19,7 @@ pub fn parteto_shortest_distance_from_source<S: BuildHasher>(
     source: NodeID,
     edge_map: &EdgeMap<S>,
     max_depth: Option<usize>,
+    max_dist: Option<&MultiDistance>,
 ) -> HashMap<NodeID, Vec<MultiDistance>> {
     let mut dist_map: HashMap<NodeID, Vec<MultiDistance>> = HashMap::new();
 
@@ -47,6 +48,14 @@ pub fn parteto_shortest_distance_from_source<S: BuildHasher>(
         let mut new_dist = fringe_dist;
         new_dist.append(&mut old_dist);
         new_dist = multimin(&new_dist);
+
+        if let Some(md) = max_dist {
+            new_dist.retain(|x| x.partial_cmp(md) != Some(std::cmp::Ordering::Greater)); // !(x > md)
+            if new_dist.is_empty() {
+                continue;
+            }
+        }
+
         *dist_map.entry(fringe_node.node_id).or_default() = new_dist;
 
         if let Some(neighbors) = edge_map.get(&fringe_node.node_id) {
@@ -125,7 +134,8 @@ mod tests {
         let expected: HashMap<NodeID, Vec<MultiDistance>> =
             HashMap::from([(NodeID(1), vec![m01]), (NodeID(2), vec![m02])]);
 
-        let shortest_paths = parteto_shortest_distance_from_source(NodeID(0), &edge_map, None);
+        let shortest_paths =
+            parteto_shortest_distance_from_source(NodeID(0), &edge_map, None, None);
 
         assert_eq!(expected, shortest_paths);
     }
@@ -180,7 +190,8 @@ mod tests {
             (NodeID(3), vec![m01 + m12 + m23, m03]),
         ]);
 
-        let shortest_paths = parteto_shortest_distance_from_source(NodeID(0), &edge_map, None);
+        let shortest_paths =
+            parteto_shortest_distance_from_source(NodeID(0), &edge_map, None, None);
 
         assert_eq!(expected, shortest_paths);
     }
@@ -216,7 +227,8 @@ mod tests {
         let expected: HashMap<NodeID, Vec<MultiDistance>> =
             HashMap::from([(NodeID(1), vec![m0]), (NodeID(2), vec![m1])]);
 
-        let shortest_paths = parteto_shortest_distance_from_source(NodeID(0), &edge_map, None);
+        let shortest_paths =
+            parteto_shortest_distance_from_source(NodeID(0), &edge_map, None, None);
 
         assert_eq!(expected, shortest_paths);
     }
