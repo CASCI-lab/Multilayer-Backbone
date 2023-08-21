@@ -1,7 +1,7 @@
 use crate::{
     is_metric_in_n_steps,
     multidistance::{MultiDistance, NodeID},
-    multimin, reverse_edges, EdgeMap,
+    multimin, parteto_shortest_distance_from_source, reverse_edges, EdgeMap,
 };
 use rayon::prelude::*;
 use std::{
@@ -10,13 +10,33 @@ use std::{
 };
 pub type MultilayerBackbone = HashMap<NodeID, HashMap<NodeID, Vec<MultiDistance>>>;
 
+/// # Panics
+/// Panics if `bb_map` lacks a node present in `edge_map`. This indicates a bug.
+pub fn fast_backbone_edge_deletion<S: BuildHasher + std::marker::Sync + Default>(
+    edge_map: &EdgeMap<S>,
+) -> EdgeMap<RandomState> {
+    let mut bb_map = structural_backbone(edge_map, Some(2));
+    //let mut bb_map = edge_map.clone(); // requires S: Clone
+    for source in edge_map.keys() {
+        let distances = parteto_shortest_distance_from_source(*source, &bb_map, None, None);
+        if let Some(dist) = bb_map.get_mut(source) {
+            dist.retain(|(target, weight)| {
+                distances
+                    .get(target)
+                    .is_some_and(|dv| dv.iter().all(|d| weight <= d))
+            });
+        }
+    }
+    bb_map
+}
+
 pub fn fast_backbone<S: BuildHasher + std::marker::Sync + Default>(
     edge_map: &EdgeMap<S>,
 ) -> EdgeMap<RandomState> {
     let bb_map = structural_backbone(edge_map, Some(2));
 
-    let mut known_metric_edges = one_step_metric_edges(edge_map);
-    two_step_metric_edges(edge_map, &mut known_metric_edges); // modifies `known_metric_edges` in-place
+    let mut known_metric_edges = one_step_metric_edges(&bb_map);
+    two_step_metric_edges(&bb_map, &mut known_metric_edges); // modifies `known_metric_edges` in-place
 
     bb_map
         .par_iter()
