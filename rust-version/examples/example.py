@@ -98,11 +98,15 @@ for i, G in enumerate(graphs):
             (G.nodes[u]["index"], G.nodes[v]["index"], i, i, 0, d["weight"])
         )
 
-# G_L0 = nx.read_graphml("examples/network.graphml")
+# G_L0 = nx.read_graphml("examples/network_yeast.graphml")
+# for i, u in enumerate(G_L0.nodes):
+#     G_L0.nodes[u]["index"] = i
 # edgelist = []
 # for u, v, d in G_L0.edges(data=True):
 #     if d["distance"] > 0:
-#         edgelist.append((int(u), int(v), 0, 0, 0, d["distance"]))
+#         edgelist.append(
+#             (G_L0.nodes[u]["index"], G_L0.nodes[v]["index"], 0, 0, 0, d["distance"])
+#         )
 
 print("=" * 20)
 print("BACKBONE (STRUCTURAL)")

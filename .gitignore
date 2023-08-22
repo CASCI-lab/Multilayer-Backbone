@@ -7,6 +7,8 @@
 venv
 rmlbb
 bbrust-dev
+# too big for github
+network_yeast.graphml 
 
 # rust stuff
 # will have compiled files and executables
