@@ -112,7 +112,7 @@ print("=" * 20)
 print("BACKBONE (STRUCTURAL)")
 print("- " * 10)
 t0s = time.perf_counter_ns()
-multilayer_backbone_structural = bb.structural_backbone_py(edgelist)
+multilayer_backbone_structural = bb.structural_backbone_simas(edgelist)
 t1s = time.perf_counter_ns()
 bb_from_structure_edges = set()
 for u, d in sorted(multilayer_backbone_structural.items()):

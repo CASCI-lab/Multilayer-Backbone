@@ -30,7 +30,7 @@ pub fn fast_backbone_edge_deletion<S: BuildHasher + std::marker::Sync + Default>
     bb_map
 }
 
-pub fn fast_backbone<S: BuildHasher + std::marker::Sync + Default>(
+pub fn fast_backbone_simas<S: BuildHasher + std::marker::Sync + Default>(
     edge_map: &EdgeMap<S>,
 ) -> EdgeMap<RandomState> {
     let bb_map = structural_backbone(edge_map, Some(2));

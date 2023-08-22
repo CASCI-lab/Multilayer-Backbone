@@ -21,7 +21,8 @@ use pyo3::prelude::*;
 fn backbone(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(distance_closure_py, m)?)?;
     m.add_function(wrap_pyfunction!(backbone_py, m)?)?;
-    m.add_function(wrap_pyfunction!(structural_backbone_py, m)?)?;
+    m.add_function(wrap_pyfunction!(structural_backbone_simas, m)?)?;
+    m.add_function(wrap_pyfunction!(structural_backbone_edge_deletion, m)?)?;
 
     Ok(())
 }
@@ -42,11 +43,20 @@ fn backbone_py(edges: Vec<(usize, usize, usize, usize, usize, f32)>) -> Multilay
 
 #[pyfunction]
 #[allow(clippy::needless_pass_by_value)] // this makes it easier to deal with pyO3
-fn structural_backbone_py(
+fn structural_backbone_simas(
     edges: Vec<(usize, usize, usize, usize, usize, f32)>,
 ) -> EdgeMap<RandomState> {
     let multiplex = edges_to_multiplex(&edges);
-    fast_backbone(&multiplex)
+    fast_backbone_simas(&multiplex)
+}
+
+#[pyfunction]
+#[allow(clippy::needless_pass_by_value)] // this makes it easier to deal with pyO3
+fn structural_backbone_edge_deletion(
+    edges: Vec<(usize, usize, usize, usize, usize, f32)>,
+) -> EdgeMap<RandomState> {
+    let multiplex = edges_to_multiplex(&edges);
+    fast_backbone_edge_deletion(&multiplex)
 }
 
 /// The function `distance_closure` takes a list of edges and returns a
