@@ -21,9 +21,14 @@ pub fn edges_to_multiplex(
             layer_end: edge.3,
             layer_weight_index: edge.4,
         };
-        let multidist = MultiDistance {
-            total: HashMap::from([(layer, edge.5)]),
+
+        let total = if edge.5 == 0.0 {
+            HashMap::new()
+        } else {
+            HashMap::from([(layer, edge.5)])
         };
+
+        let multidist = MultiDistance { total };
 
         multiplex
             .entry(source)

@@ -1,9 +1,14 @@
 use pyo3::prelude::*;
 use std::collections::{HashMap, HashSet};
+use std::fmt;
 use std::ops::Add;
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub struct NodeID(pub usize);
-
+impl fmt::Display for NodeID {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
 impl IntoPy<PyObject> for NodeID {
     fn into_py(self, py: Python<'_>) -> PyObject {
         let NodeID(node_id_val) = self;

@@ -34,15 +34,10 @@ pub fn parteto_shortest_distance_from_source<S: BuildHasher>(
     }]);
 
     while let Some(fringe_node) = fringe.pop_front() {
-        if max_depth.is_some_and(|d| fringe_node.depth >= d) {
+        if max_depth.is_some_and(|d| fringe_node.depth > d) {
             continue;
         }
-        // it would be more efficient to handle in-map and not-in-map cases
-        // separately; can fix this later
-        let fringe_dist = dist_map
-            .entry(fringe_node.node_id)
-            .or_insert(Vec::new())
-            .clone();
+        let fringe_dist = dist_map.entry(fringe_node.node_id).or_default().clone();
 
         let mut old_dist = fringe_node.dists;
         let mut new_dist = fringe_dist;
@@ -73,15 +68,10 @@ pub fn parteto_shortest_distance_from_source<S: BuildHasher>(
                 fringe_to_child_dist.extend(child_dist.iter().cloned());
                 fringe_to_child_dist = multimin(&fringe_to_child_dist);
 
-                let push_to_fringe = fringe_to_child_dist != *child_dist;
-
-                // let push_to_fringe = if child_dist.is_empty() {
-                //     true
-                // } else {
-                //     let seen_rep = &child_dist[0].clone(); // all are incomparable
-                //     let fringe_rep = &fringe_to_child_dist[0].clone(); // all are incomparable
-                //     fringe_rep < seen_rep
-                // };
+                let mut push_to_fringe = fringe_to_child_dist != *child_dist;
+                if max_depth.is_some_and(|d| fringe_node.depth >= d) {
+                    push_to_fringe = false;
+                }
                 *child_dist = fringe_to_child_dist;
                 if push_to_fringe {
                     fringe.push_back(FringeNode {

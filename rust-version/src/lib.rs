@@ -22,7 +22,8 @@ fn backbone(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(distance_closure_py, m)?)?;
     m.add_function(wrap_pyfunction!(backbone_py, m)?)?;
     m.add_function(wrap_pyfunction!(structural_backbone_simas, m)?)?;
-    m.add_function(wrap_pyfunction!(structural_backbone_edge_deletion, m)?)?;
+    m.add_function(wrap_pyfunction!(structural_backbone_costa, m)?)?;
+    m.add_function(wrap_pyfunction!(structural_backbone_naive, m)?)?;
 
     Ok(())
 }
@@ -52,11 +53,20 @@ fn structural_backbone_simas(
 
 #[pyfunction]
 #[allow(clippy::needless_pass_by_value)] // this makes it easier to deal with pyO3
-fn structural_backbone_edge_deletion(
+fn structural_backbone_costa(
     edges: Vec<(usize, usize, usize, usize, usize, f32)>,
 ) -> EdgeMap<RandomState> {
     let multiplex = edges_to_multiplex(&edges);
-    fast_backbone_edge_deletion(&multiplex)
+    fast_backbone_costa(&multiplex)
+}
+
+#[pyfunction]
+#[allow(clippy::needless_pass_by_value)] // this makes it easier to deal with pyO3
+fn structural_backbone_naive(
+    edges: Vec<(usize, usize, usize, usize, usize, f32)>,
+) -> EdgeMap<RandomState> {
+    let multiplex = edges_to_multiplex(&edges);
+    structural_backbone(&multiplex, None)
 }
 
 /// The function `distance_closure` takes a list of edges and returns a
@@ -112,9 +122,14 @@ pub fn multilayer_backbone(
             layer_end: edge.3,
             layer_weight_index: edge.4,
         };
-        let multidist = MultiDistance {
-            total: HashMap::from([(layer, edge.5)]),
+
+        let total = if edge.5 == 0.0 {
+            HashMap::new()
+        } else {
+            HashMap::from([(layer, edge.5)])
         };
+
+        let multidist = MultiDistance { total };
 
         let mins = closure.get(&source).unwrap().get(&target).unwrap();
 

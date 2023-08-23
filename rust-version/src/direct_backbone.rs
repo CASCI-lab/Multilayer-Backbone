@@ -12,20 +12,19 @@ pub type MultilayerBackbone = HashMap<NodeID, HashMap<NodeID, Vec<MultiDistance>
 
 /// # Panics
 /// Panics if `bb_map` lacks a node present in `edge_map`. This indicates a bug.
-pub fn fast_backbone_edge_deletion<S: BuildHasher + std::marker::Sync + Default>(
+pub fn fast_backbone_costa<S: BuildHasher + std::marker::Sync + Default + Clone>(
     edge_map: &EdgeMap<S>,
-) -> EdgeMap<RandomState> {
-    let mut bb_map = structural_backbone(edge_map, Some(2));
-    //let mut bb_map = edge_map.clone(); // requires S: Clone
+) -> EdgeMap<S> {
+    let mut bb_map = edge_map.clone();
+    // let mut bb_map = structural_backbone(edge_map, Some(1));
     for source in edge_map.keys() {
         let distances = parteto_shortest_distance_from_source(*source, &bb_map, None, None);
-        if let Some(dist) = bb_map.get_mut(source) {
-            dist.retain(|(target, weight)| {
-                distances
-                    .get(target)
-                    .is_some_and(|dv| dv.iter().all(|d| weight <= d))
-            });
-        }
+        let dist = bb_map.get_mut(source).unwrap();
+        dist.retain(|(target, direct_weight)| {
+            distances.get(target).is_some_and(|distances_to_target| {
+                !distances_to_target.iter().any(|d| d < direct_weight)
+            })
+        });
     }
     bb_map
 }
@@ -33,10 +32,11 @@ pub fn fast_backbone_edge_deletion<S: BuildHasher + std::marker::Sync + Default>
 pub fn fast_backbone_simas<S: BuildHasher + std::marker::Sync + Default>(
     edge_map: &EdgeMap<S>,
 ) -> EdgeMap<RandomState> {
-    let bb_map = structural_backbone(edge_map, Some(2));
+    let bb_map = edge_map.clone();
+    //let bb_map = &structural_backbone(edge_map, Some(2));
 
-    let mut known_metric_edges = one_step_metric_edges(&bb_map);
-    two_step_metric_edges(&bb_map, &mut known_metric_edges); // modifies `known_metric_edges` in-place
+    let mut known_metric_edges = one_step_metric_edges(bb_map);
+    two_step_metric_edges(bb_map, &mut known_metric_edges); // modifies `known_metric_edges` in-place
 
     bb_map
         .par_iter()
@@ -48,8 +48,7 @@ pub fn fast_backbone_simas<S: BuildHasher + std::marker::Sync + Default>(
                     .map(std::clone::Clone::clone)
                     .filter(|(target, _)| {
                         known_metric_edges.contains(&(*source, *target))
-                            || is_metric_in_n_steps(&bb_map, *source, *target, None)
-                                .unwrap_or(false)
+                            || is_metric_in_n_steps(bb_map, *source, *target, None).unwrap_or(false)
                     })
                     .collect();
                 neighbor_edge_map.insert(*source, metric_neighbors);
@@ -101,45 +100,10 @@ pub fn structural_backbone<S: BuildHasher + std::marker::Sync + Default>(
 fn one_step_metric_edges<S: BuildHasher + std::marker::Sync + Default>(
     edge_map: &EdgeMap<S>,
 ) -> HashSet<(NodeID, NodeID)> {
-    // let mut known_metric_edges = HashSet::new();
-
-    // for (source, neighbors) in edge_map.iter().chain(reverse_edges(edge_map).iter()) {
-    //     let out_edges: Vec<MultiDistance> =
-    //         neighbors.iter().map(|(_, dist)| dist.clone()).collect();
-
-    //     let multimin_for_source = multimin(&out_edges);
-
-    //     known_metric_edges.extend(
-    //         neighbors
-    //             .iter()
-    //             .filter(|(_, md)| multimin_for_source.contains(md))
-    //             .map(|(target, _)| (*source, *target)),
-    //     );
-    // }
-
-    // known_metric_edges
-
     let forward = edge_map.par_iter();
     let binding = reverse_edges(edge_map);
     let reverse = binding.par_iter();
     let combined = forward.chain(reverse);
-
-    // combined
-    //     .map(|(source, neighbors)| -> HashSet<(NodeID, NodeID)> {
-    //         let out_edges: Vec<MultiDistance> =
-    //             neighbors.iter().map(|(_, dist)| dist.clone()).collect();
-
-    //         let multimin_for_source = multimin(&out_edges);
-
-    //         HashSet::from_par_iter(
-    //             neighbors
-    //                 .par_iter()
-    //                 .filter(|(_, md)| multimin_for_source.contains(md))
-    //                 .map(|(target, _)| (*source, *target)),
-    //         )
-    //     })
-    //     .flatten()
-    //     .collect()
 
     min_edges_with_condition(combined, |_, _, _| true)
 }

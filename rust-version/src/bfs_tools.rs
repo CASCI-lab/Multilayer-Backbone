@@ -36,9 +36,8 @@ pub fn is_metric_in_n_steps<S: BuildHasher + std::marker::Sync + Default>(
             if let Some(dist_to_target) = shortest_dists.get(&target) {
                 return Ok(dist_to_target.iter().any(|md| test_edge_weight == md));
             }
-
-            return Ok(false);
         }
     }
+
     Err(MissingEdgeError { source, target })
 }
