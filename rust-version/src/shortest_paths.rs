@@ -19,7 +19,7 @@ pub fn parteto_shortest_distance_from_source<S: BuildHasher>(
     source: NodeID,
     edge_map: &EdgeMap<S>,
     max_depth: Option<usize>,
-    max_dist: Option<&MultiDistance>,
+    edge_compare: Option<(&NodeID, &MultiDistance)>,
 ) -> HashMap<NodeID, Vec<MultiDistance>> {
     let mut dist_map: HashMap<NodeID, Vec<MultiDistance>> = HashMap::new();
 
@@ -44,7 +44,11 @@ pub fn parteto_shortest_distance_from_source<S: BuildHasher>(
         new_dist.append(&mut old_dist);
         new_dist = multimin(&new_dist);
 
-        if let Some(md) = max_dist {
+        if let Some((t, md)) = edge_compare {
+            if fringe_node.node_id == *t && new_dist.iter().any(|x| x < md) {
+                *dist_map.entry(fringe_node.node_id).or_default() = new_dist;
+                break;
+            }
             new_dist.retain(|x| x.partial_cmp(md) != Some(std::cmp::Ordering::Greater)); // !(x > md)
             if new_dist.is_empty() {
                 continue;

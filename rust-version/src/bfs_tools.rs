@@ -30,7 +30,7 @@ pub fn is_metric_in_n_steps<S: BuildHasher + std::marker::Sync + Default>(
                 source,
                 edge_map,
                 n_steps,
-                Some(&test_edge_weight.clone()),
+                Some((&target, &test_edge_weight.clone())),
             );
 
             if let Some(dist_to_target) = shortest_dists.get(&target) {
