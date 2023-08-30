@@ -44,12 +44,11 @@ where
             graph
                 .neighbor_edges(source)
                 .par_iter()
-                .map(std::clone::Clone::clone)
                 .filter(|(target, _)| {
                     !known_metric_edges.contains(&(*source, *target))
                         && !is_metric_in_n_steps(graph, *source, *target, None).unwrap_or(false)
                 })
-                .map(|(target, _)| (*source, target))
+                .map(|(target, _)| (*source, *target))
                 .collect()
         })
         .collect();
@@ -72,11 +71,10 @@ pub fn structural_backbone<T>(
             graph
                 .neighbor_edges(source)
                 .par_iter()
-                .map(std::clone::Clone::clone)
                 .filter(|(target, _)| {
                     !is_metric_in_n_steps(graph, *source, *target, n_steps).unwrap_or(false)
                 })
-                .map(|(target, _)| (*source, target))
+                .map(|(target, _)| (*source, *target))
                 .collect()
         })
         .collect();
@@ -130,42 +128,42 @@ where
     T: MultidistanceGraph + Sync,
 {
     for source in &graph.nodes() {
-        let neighbors = graph.neighbor_edges(source);
+        let mut remainder: HashMap<NodeID, MultiDistance> = graph
+            .neighbor_edges(source)
+            .clone()
+            .into_iter()
+            .collect::<HashMap<_, _>>();
         let mut two_hop_known_metric_dists = Vec::new();
         for (s, target) in known_metric_edges.iter() {
             if s != source {
                 continue;
             }
-            if let Some((_, dist)) = neighbors.iter().find(|(t, _)| t == target) {
+            if let Some(dist) = remainder.get(target) {
                 for (_, dist2) in graph.neighbor_edges(target) {
                     two_hop_known_metric_dists.push(dist.clone() + dist2.clone());
                 }
             }
         }
 
-        let mut continue_search = true;
-        while continue_search {
-            continue_search = false;
+        loop {
+            let mut continue_search = false;
 
-            let mut remainder = neighbors.clone();
-            remainder.retain(|(target, _)| !known_metric_edges.contains(&(*source, *target)));
-            let remainder_weights: Vec<MultiDistance> =
-                remainder.iter().map(|(_, d)| d.clone()).collect();
+            remainder.retain(|target, _| !known_metric_edges.contains(&(*source, *target)));
+            let remainder_weights: Vec<MultiDistance> = remainder.values().cloned().collect();
             let min_weights = multimin(&remainder_weights);
 
-            for (target, multidist) in remainder {
-                if !min_weights.contains(&multidist) {
-                    continue;
-                }
-                if let Some((_, dist)) = neighbors.iter().find(|(t, _)| *t == target) {
-                    if two_hop_known_metric_dists
+            for (target, multidist) in &remainder {
+                if min_weights.contains(multidist)
+                    && !two_hop_known_metric_dists
                         .iter()
-                        .all(|d2| d2 > dist || d2.partial_cmp(dist).is_none())
-                    {
-                        known_metric_edges.insert((*source, target));
-                        continue_search = true;
-                    }
+                        .all(|d2| d2.not_less_than(multidist))
+                {
+                    known_metric_edges.insert((*source, *target));
+                    continue_search = true;
                 }
+            }
+            if !continue_search {
+                break;
             }
         }
     }

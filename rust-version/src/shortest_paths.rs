@@ -18,18 +18,17 @@ pub fn parteto_shortest_distance_from_source(
     max_depth: Option<usize>,
     edge_compare: Option<(&NodeID, &MultiDistance)>,
 ) -> HashMap<NodeID, Vec<MultiDistance>> {
+    // initialize stuff
     let mut dist_map: HashMap<NodeID, Vec<MultiDistance>> = HashMap::new();
-
-    let initial_dist = MultiDistance::default(); // need to check default
-
+    let initial_dist = MultiDistance::default();
     let mut seen = HashMap::from([(source, vec![initial_dist.clone()])]);
-
     let mut fringe = VecDeque::from([FringeNode {
         node_id: source,
         dists: vec![initial_dist.clone()],
         depth: 0,
     }]);
 
+    // main loop; basically Dijsktra, but the edge weights are only partially ordered
     while let Some(fringe_node) = fringe.pop_front() {
         if max_depth.is_some_and(|d| fringe_node.depth > d) {
             continue;
