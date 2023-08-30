@@ -31,41 +31,14 @@ pub fn multidistance_closure(graph: &(impl MultidistanceGraph + Sync)) -> Multid
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{multidistance::EdgeLayerID, MultidistanceGraphHashmap};
+    use crate::MultidistanceGraphHashmap;
     #[allow(clippy::redundant_clone)]
     #[test]
     fn test_simple_multilayer_closure() {
-        let layer_0_0 = EdgeLayerID {
-            layer_start: 0,
-            layer_end: 0,
-            layer_weight_index: 0,
-        };
-        let layer_1_1 = EdgeLayerID {
-            layer_start: 1,
-            layer_end: 1,
-            layer_weight_index: 0,
-        };
-        let layer_0_1 = EdgeLayerID {
-            layer_start: 0,
-            layer_end: 1,
-            layer_weight_index: 0,
-        };
-
-        let m01 = MultiDistance {
-            total: HashMap::from([(layer_0_0, 1.0)]),
-        };
-
-        let m03 = MultiDistance {
-            total: HashMap::from([(layer_0_1, 2.0)]),
-        };
-
-        let m12 = MultiDistance {
-            total: HashMap::from([(layer_0_1, 1.0)]),
-        };
-
-        let m23 = MultiDistance {
-            total: HashMap::from([(layer_1_1, 1.0)]),
-        };
+        let m01 = MultiDistance::from_tuple(0, 0, 0, 1.0);
+        let m03 = MultiDistance::from_tuple(0, 1, 0, 2.0);
+        let m12 = MultiDistance::from_tuple(0, 1, 0, 1.0);
+        let m23 = MultiDistance::from_tuple(1, 1, 0, 1.0);
 
         let graph = MultidistanceGraphHashmap::from_tuple_edge_list(&[
             (0, 1, 0, 0, 0, 1.0),

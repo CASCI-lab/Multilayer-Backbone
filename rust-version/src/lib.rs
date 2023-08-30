@@ -1,6 +1,5 @@
 mod bfs_tools;
 mod closure;
-mod conversion;
 mod direct_backbone;
 mod multidistance;
 mod multigraph;
@@ -10,7 +9,6 @@ use std::collections::HashMap;
 
 pub use bfs_tools::*;
 pub use closure::*;
-pub use conversion::*;
 pub use direct_backbone::*;
 pub use multidistance::*;
 pub use multigraph::*;

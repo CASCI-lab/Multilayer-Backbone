@@ -66,33 +66,6 @@ where
     for (u, v) in &semimetric_edges {
         graph.remove_edge(*u, *v);
     }
-
-    // bb_graph.nodes()
-    //     .par_iter()
-    //     .map(
-    //         |source| -> HashMap<NodeID, Vec<(NodeID, MultiDistance)>> {
-    //             let neighbors = bb_graph.neighbor_edges(source);
-    //             let mut neighbor_edge_map = HashMap::default();
-    //             let metric_neighbors: Vec<(NodeID, MultiDistance)> = neighbors
-    //                 .par_iter()
-    //                 .map(std::clone::Clone::clone)
-    //                 .filter(|(target, _)| {
-    //                     known_metric_edges.contains(&(*source, *target))
-    //                         || is_metric_in_n_steps(bb_map, *source, *target, None).unwrap_or(false)
-    //                 })
-    //                 .collect();
-    //             neighbor_edge_map.insert(*source, metric_neighbors);
-    //             neighbor_edge_map // has only source as a key
-    //         },
-    //     )
-    //     // merge the hashmaps (which each have only one key) into one hashmap
-    //     // with a key for each node
-    //     .reduce(HashMap::new, |a, b| {
-    //         b.iter().fold(a, |mut acc, (k, v)| {
-    //             acc.entry(*k).or_insert(v.clone());
-    //             acc
-    //         })
-    //     })
 }
 
 pub fn structural_backbone<T>(
@@ -120,33 +93,6 @@ pub fn structural_backbone<T>(
     for (u, v) in &semimetric_edges {
         graph.remove_edge(*u, *v);
     }
-
-    // graph
-    //     .nodes()
-    //     .par_iter()
-    //     // map each key value pair to a hashmap that contains only each source
-    //     // considered and the neighbors that are metric up to n steps
-    //     .map(|source| -> HashMap<NodeID, Vec<(NodeID, MultiDistance)>> {
-    //         let neighbors = graph.neighbor_edges(source);
-    //         let mut neighbor_edge_map = HashMap::default();
-    //         let n_step_metric_neighbors: Vec<(NodeID, MultiDistance)> = neighbors
-    //             .par_iter()
-    //             .map(std::clone::Clone::clone)
-    //             .filter(|(target, _)| {
-    //                 is_metric_in_n_steps(edge_map, *source, *target, n_steps).unwrap_or(false)
-    //             })
-    //             .collect();
-    //         neighbor_edge_map.insert(*source, n_step_metric_neighbors);
-    //         neighbor_edge_map // has only source as a key
-    //     })
-    //     // merge the hashmaps (which each have only one key) into one hashmap
-    //     // with a key for each node
-    //     .reduce(HashMap::new, |a, b| {
-    //         b.iter().fold(a, |mut acc, (k, v)| {
-    //             acc.entry(*k).or_insert(v.clone());
-    //             acc
-    //         })
-    //     })
 }
 
 fn one_step_metric_edges<T>(graph: &T) -> HashSet<(NodeID, NodeID)>
@@ -224,7 +170,6 @@ where
                 if !min_weights.contains(&multidist) {
                     continue;
                 }
-                // remainder is constructed so that all edges begin as `source`
                 if let Some((_, dist)) = neighbors.iter().find(|(t, _)| *t == target) {
                     if two_hop_known_metric_dists
                         .iter()

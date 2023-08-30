@@ -20,7 +20,7 @@ pub trait ClosureGraph {
     fn edge_weight(&self, from: NodeID, to: NodeID) -> Option<&MultiDistance>;
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, PartialEq, Eq)]
 pub struct MultidistanceGraphHashmap {
     pub(crate) edges: HashMap<NodeID, HashMap<NodeID, MultiDistance>>,
 }
