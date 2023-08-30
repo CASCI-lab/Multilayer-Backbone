@@ -83,6 +83,15 @@ impl MultiDistance {
             }
         }
     }
+
+    #[must_use]
+    pub fn not_less_than(&self, other: &Self) -> bool {
+        !matches!(self.partial_cmp(other), Some(std::cmp::Ordering::Less))
+    }
+    #[must_use]
+    pub fn not_greater_than(&self, other: &Self) -> bool {
+        !matches!(self.partial_cmp(other), Some(std::cmp::Ordering::Greater))
+    }
 }
 
 impl IntoPy<PyObject> for MultiDistance {

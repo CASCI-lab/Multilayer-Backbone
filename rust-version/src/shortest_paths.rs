@@ -46,7 +46,7 @@ pub fn parteto_shortest_distance_from_source(
                 *dist_map.entry(fringe_node.node_id).or_default() = new_dist;
                 break;
             }
-            new_dist.retain(|x| x.partial_cmp(md) != Some(std::cmp::Ordering::Greater)); // !(x > md)
+            new_dist.retain(|x| x.not_greater_than(md));
             if new_dist.is_empty() {
                 continue;
             }
@@ -68,12 +68,10 @@ pub fn parteto_shortest_distance_from_source(
             fringe_to_child_dist.extend(child_dist.iter().cloned());
             fringe_to_child_dist = multimin(&fringe_to_child_dist);
 
-            let mut push_to_fringe = fringe_to_child_dist != *child_dist;
-            if max_depth.is_some_and(|d| fringe_node.depth >= d) {
-                push_to_fringe = false;
-            }
-            *child_dist = fringe_to_child_dist;
-            if push_to_fringe {
+            if (fringe_to_child_dist != *child_dist)
+                && !max_depth.is_some_and(|d| fringe_node.depth >= d)
+            {
+                *child_dist = fringe_to_child_dist;
                 fringe.push_back(FringeNode {
                     node_id: *child,
                     dists: child_dist.clone(),

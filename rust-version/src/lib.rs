@@ -13,7 +13,6 @@ pub use direct_backbone::*;
 pub use multidistance::*;
 pub use multigraph::*;
 pub use shortest_paths::*;
-// pub type MultilayerBackbone = HashMap<NodeID, HashMap<NodeID, Vec<MultiDistance>>>;
 
 use pyo3::prelude::*;
 

@@ -13,8 +13,6 @@ pub fn fast_backbone_costa<T>(graph: &mut T)
 where
     T: MultidistanceGraph + Sync,
 {
-    // let mut bb_graph = graph.clone();
-    // let mut bb_map = structural_backbone(edge_map, Some(1));
     for source in graph.nodes() {
         let distances = parteto_shortest_distance_from_source(source, graph, None, None);
 
@@ -27,13 +25,6 @@ where
             }
         }
     }
-    // let dist = bb_graph.get_mut(source).unwrap();
-    // dist.retain(|(target, direct_weight)| {
-    //     distances.get(target).is_some_and(|distances_to_target| {
-    //         !distances_to_target.iter().any(|d| d < direct_weight)
-    //     })
-    // });
-    // *bb_graph
 }
 
 pub fn fast_backbone_simas<T>(graph: &mut T)
@@ -99,11 +90,7 @@ fn one_step_metric_edges<T>(graph: &T) -> HashSet<(NodeID, NodeID)>
 where
     T: MultidistanceGraph + Sync,
 {
-    // let forward = edge_map.par_iter();
-    // let binding = reverse_edges(edge_map);
-    // let reverse = binding.par_iter();
-    // let combined = forward.chain(reverse);
-
+    // TODO: incorporate edge reversal for min incoming edges
     min_edges_with_condition(graph, |_, _, _| true)
 }
 
