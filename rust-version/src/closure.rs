@@ -1,22 +1,21 @@
 use crate::{
-    bfs_tools::EdgeMap,
     multidistance::{MultiDistance, NodeID},
     shortest_paths::parteto_shortest_distance_from_source,
+    MultidistanceGraph,
 };
 use rayon::prelude::*;
-use std::{collections::HashMap, hash::BuildHasher};
+use std::collections::HashMap;
 #[allow(clippy::module_name_repetitions)]
 pub type MultidistanceClosure = HashMap<NodeID, HashMap<NodeID, Vec<MultiDistance>>>;
 
 #[allow(clippy::module_name_repetitions)]
 #[must_use]
-pub fn multidistance_closure<S: BuildHasher + std::marker::Sync>(
-    edge_map: &EdgeMap<S>,
-) -> MultidistanceClosure {
-    edge_map
+pub fn multidistance_closure(graph: &(impl MultidistanceGraph + Sync)) -> MultidistanceClosure {
+    graph
+        .nodes()
         .par_iter()
-        .map(|(source, _)| {
-            let pareto_dists = parteto_shortest_distance_from_source(*source, edge_map, None, None);
+        .map(|source| {
+            let pareto_dists = parteto_shortest_distance_from_source(*source, graph, None, None);
             let mut dist_map = HashMap::new();
             dist_map.insert(*source, pareto_dists);
             dist_map
@@ -32,7 +31,7 @@ pub fn multidistance_closure<S: BuildHasher + std::marker::Sync>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::multidistance::EdgeLayerID;
+    use crate::{multidistance::EdgeLayerID, MultidistanceGraphHashmap};
     #[allow(clippy::redundant_clone)]
     #[test]
     fn test_simple_multilayer_closure() {
@@ -68,14 +67,11 @@ mod tests {
             total: HashMap::from([(layer_1_1, 1.0)]),
         };
 
-        let edge_map: EdgeMap<_> = HashMap::from([
-            (
-                NodeID(0),
-                vec![(NodeID(1), m01.clone()), (NodeID(3), m03.clone())],
-            ),
-            (NodeID(1), vec![(NodeID(2), m12.clone())]),
-            (NodeID(2), vec![(NodeID(3), m23.clone())]),
-            (NodeID(3), vec![]),
+        let graph = MultidistanceGraphHashmap::from_tuple_edge_list(&[
+            (0, 1, 0, 0, 0, 1.0),
+            (0, 3, 0, 1, 0, 2.0),
+            (1, 2, 0, 1, 0, 1.0),
+            (2, 3, 1, 1, 0, 1.0),
         ]);
 
         let expected_from_0: HashMap<NodeID, Vec<MultiDistance>> = HashMap::from([
@@ -101,7 +97,7 @@ mod tests {
             (NodeID(3), expected_from_3),
         ]);
 
-        let closure = multidistance_closure(&edge_map);
+        let closure = multidistance_closure(&graph);
 
         assert_eq!(expected, closure);
     }

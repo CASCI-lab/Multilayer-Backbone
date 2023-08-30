@@ -59,8 +59,6 @@ pub fn reverse_edges<S: BuildHasher + std::marker::Sync + Default>(
 
 #[cfg(test)]
 mod tests {
-    use crate::closure;
-
     use super::*;
     #[allow(clippy::redundant_clone)]
     #[test]
@@ -171,7 +169,6 @@ mod tests {
             (14, 15, 2, 2, 0, 1.0),
             (16, 17, 2, 2, 0, 1.0),
         ];
-        let multiplex = edges_to_multiplex(&edges);
-        let _closure = closure::multidistance_closure(&multiplex);
+        let _multiplex = edges_to_multiplex(&edges);
     }
 }

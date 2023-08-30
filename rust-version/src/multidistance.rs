@@ -55,6 +55,26 @@ pub struct MultiDistance {
 }
 
 impl MultiDistance {
+    #[must_use]
+    pub fn from_tuple(
+        layer_start: usize,
+        layer_end: usize,
+        layer_weight_index: usize,
+        weight: f32,
+    ) -> MultiDistance {
+        let layer = EdgeLayerID {
+            layer_start,
+            layer_end,
+            layer_weight_index,
+        };
+        let total = if weight == 0.0 {
+            HashMap::new()
+        } else {
+            HashMap::from([(layer, weight)])
+        };
+        MultiDistance { total }
+    }
+
     pub fn add_to_self(&mut self, rhs: &Self) {
         for (key, value) in &rhs.total {
             #[allow(clippy::float_cmp)] // this is ok because we only care about literal zero
