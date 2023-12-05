@@ -1,0 +1,443 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass amsart
+\use_default_options true
+\begin_modules
+theorems-ams
+eqs-within-sections
+figs-within-sections
+\end_modules
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+Let 
+\begin_inset Formula $B$
+\end_inset
+
+ be the backbone edge set for multilayer digraph 
+\begin_inset Formula $G$
+\end_inset
+
+ with weight function 
+\begin_inset Formula $w:E\left(G\right)\rightarrow\mathcal{W}$
+\end_inset
+
+ computed using edge aggregation 
+\begin_inset Formula $g\left(a,b\right)=a+b$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Let 
+\begin_inset Formula $\prec$
+\end_inset
+
+ be a partial order on the edge weights of 
+\begin_inset Formula $G$
+\end_inset
+
+ such that there is a zero-element 
+\begin_inset Formula $0\prec z$
+\end_inset
+
+ for all 
+\begin_inset Formula $z\not=0$
+\end_inset
+
+ and for any 
+\begin_inset Formula $z\not=0$
+\end_inset
+
+, 
+\begin_inset Formula $a\precsim b\implies a\precsim b+z$
+\end_inset
+
+ (here, 
+\begin_inset Formula $a\precsim b$
+\end_inset
+
+ means 
+\begin_inset Formula $b\not\prec a$
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Proposition
+Let 
+\begin_inset Formula $m$
+\end_inset
+
+ be an edge connecting 
+\begin_inset Formula $u$
+\end_inset
+
+ to 
+\begin_inset Formula $v$
+\end_inset
+
+ such that a) any edge 
+\begin_inset Formula $x_{i}$
+\end_inset
+
+ ending at 
+\begin_inset Formula $v$
+\end_inset
+
+ satisfies 
+\begin_inset Formula $w\left(m\right)\precsim w\left(x_{i}\right)$
+\end_inset
+
+ or b) any edge 
+\begin_inset Formula $y_{i}$
+\end_inset
+
+ starting at 
+\begin_inset Formula $u$
+\end_inset
+
+ satisfies 
+\begin_inset Formula $w\left(m\right)\precsim w\left(y_{i}\right)$
+\end_inset
+
+.
+ Then 
+\begin_inset Formula $m\in B$
+\end_inset
+
+, i.e., 
+\begin_inset Formula $w\left(m\right)\precsim p$
+\end_inset
+
+ for any path 
+\begin_inset Formula $P$
+\end_inset
+
+ of weight 
+\begin_inset Formula $p$
+\end_inset
+
+ connecting 
+\begin_inset Formula $u$
+\end_inset
+
+ to 
+\begin_inset Formula $v$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Proof
+If 
+\begin_inset Formula $P$
+\end_inset
+
+ is direct, then 
+\begin_inset Formula $w\left(m\right)\precsim p$
+\end_inset
+
+ by either assumption a or assumption b.
+ Otherwise, 
+\begin_inset Formula $P$
+\end_inset
+
+ has more than one edge.
+ If assumption a holds, then 
+\begin_inset Formula $P$
+\end_inset
+
+ contains some 
+\begin_inset Formula $x_{i}$
+\end_inset
+
+ ending at 
+\begin_inset Formula $v$
+\end_inset
+
+ and there exists some weight 
+\begin_inset Formula $z\not=0$
+\end_inset
+
+ such that 
+\begin_inset Formula $p=w\left(x_{i}\right)+z$
+\end_inset
+
+.
+ Because 
+\begin_inset Formula $w\left(m\right)\precsim w\left(x_{i}\right)$
+\end_inset
+
+, it follows that 
+\begin_inset Formula $w\left(m\right)\precsim w\left(x_{i}\right)+z=p$
+\end_inset
+
+.
+ Similarly, if assumption 
+\begin_inset Formula $b$
+\end_inset
+
+ holds, 
+\begin_inset Formula $w\left(m\right)\precsim w\left(y_{i}\right)+z=p$
+\end_inset
+
+.
+ Thus, 
+\begin_inset Formula $w\left(m\right)\precsim p$
+\end_inset
+
+, implying 
+\begin_inset Formula $m\in B$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Proposition
+Let 
+\begin_inset Formula $\left\{ m_{\alpha}\right\} $
+\end_inset
+
+ be any set edges in 
+\begin_inset Formula $B$
+\end_inset
+
+ beginning at 
+\begin_inset Formula $u$
+\end_inset
+
+, and let 
+\begin_inset Formula $e_{i}$
+\end_inset
+
+ be the remaining edges beginning at 
+\begin_inset Formula $u$
+\end_inset
+
+ with 
+\begin_inset Formula $w\left(e_{0}\right)\precsim w\left(e_{i}\right)$
+\end_inset
+
+ for all 
+\begin_inset Formula $i$
+\end_inset
+
+ and 
+\begin_inset Formula $e_{0}$
+\end_inset
+
+ ending at 
+\begin_inset Formula $v$
+\end_inset
+
+.
+ If i) if any 
+\begin_inset Formula $m_{\alpha}$
+\end_inset
+
+ connects 
+\begin_inset Formula $u$
+\end_inset
+
+ to 
+\begin_inset Formula $v$
+\end_inset
+
+, then 
+\begin_inset Formula $w\left(e_{0}\right)\simeq w\left(m_{\alpha}\right)$
+\end_inset
+
+ and ii) 
+\begin_inset Formula $w\left(e_{0}\right)$
+\end_inset
+
+ is not longer than the weight of any path of two hops containing an edge
+ in 
+\begin_inset Formula $\left\{ m_{\alpha}\right\} $
+\end_inset
+
+, then 
+\begin_inset Formula $e_{0}\in B$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Proof
+Consider a path 
+\begin_inset Formula $P$
+\end_inset
+
+ of weight 
+\begin_inset Formula $p$
+\end_inset
+
+ that connects 
+\begin_inset Formula $u$
+\end_inset
+
+ to 
+\begin_inset Formula $v$
+\end_inset
+
+.
+ If 
+\begin_inset Formula $P$
+\end_inset
+
+ is direct, then either 
+\begin_inset Formula $p=w\left(e_{i}\right)$
+\end_inset
+
+ for some 
+\begin_inset Formula $i$
+\end_inset
+
+, in which case 
+\begin_inset Formula $e$
+\end_inset
+
+ contains some 
+\begin_inset Formula $e_{i}$
+\end_inset
+
+ and 
+\begin_inset Formula $w\left(e_{0}\right)\precsim p$
+\end_inset
+
+ by assumption, or 
+\begin_inset Formula $p=w\left(m_{\alpha}\right)$
+\end_inset
+
+ for some alpha, and 
+\begin_inset Formula $w\left(e_{0}\right)\precsim p$
+\end_inset
+
+ by condition i).
+ Otherwise, 
+\begin_inset Formula $P$
+\end_inset
+
+ conains two or more edges.
+ If 
+\begin_inset Formula $P$
+\end_inset
+
+ does not contain any 
+\begin_inset Formula $m_{\alpha}$
+\end_inset
+
+, then 
+\begin_inset Formula $p=w\left(e_{i}\right)+z$
+\end_inset
+
+ for some 
+\begin_inset Formula $z\not=0$
+\end_inset
+
+, and thus 
+\begin_inset Formula $w\left(e_{0}\right)\precsim p$
+\end_inset
+
+.
+ Otherwise, 
+\begin_inset Formula $P$
+\end_inset
+
+ contains a path of two hops containing an edge in 
+\begin_inset Formula $\left\{ m_{\alpha}\right\} $
+\end_inset
+
+, implying by condition ii) that 
+\begin_inset Formula $w\left(e_{0}\right)\precsim p$
+\end_inset
+
+.
+ Thus, 
+\begin_inset Formula $w\left(e_{0}\right)\precsim p$
+\end_inset
+
+ and so 
+\begin_inset Formula $e_{0}\in B$
+\end_inset
+
+.
+\end_layout
+
+\end_body
+\end_document
