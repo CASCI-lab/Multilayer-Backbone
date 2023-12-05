@@ -119,19 +119,13 @@ pub fn multilayer_backbone(
     for edge in edges {
         let source = NodeID(edge.0);
         let target = NodeID(edge.1);
-        let layer = EdgeLayerID {
-            layer_start: edge.2,
-            layer_end: edge.3,
-            layer_weight_index: edge.4,
-        };
 
-        let total = if edge.5 == 0.0 {
-            HashMap::new()
-        } else {
-            HashMap::from([(layer, edge.5)])
-        };
-
-        let multidist = MultiDistance { total };
+        let layer_start = edge.2;
+        let layer_end = edge.3;
+        let layer_weight_index = edge.4;
+        let layer_weight = edge.5;
+        let multidist =
+            MultiDistance::from_tuple(layer_start, layer_end, layer_weight_index, layer_weight);
 
         let mins = closure.get(&source).unwrap().get(&target).unwrap();
 
