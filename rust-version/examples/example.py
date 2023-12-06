@@ -37,13 +37,21 @@ import networkx as nx
 # )
 # graphs = [G_L0, G_L1, G_L2]
 
+SIMAS = False
+COSTA = False
+NAIVE = True
+CLOSE = False
+CHECK = False
+PAUSE = False
+SEED = 0
 
-ER0 = nx.erdos_renyi_graph(50, 0.05)
-ER1 = nx.erdos_renyi_graph(10, 0.01)
-ER2 = nx.erdos_renyi_graph(25, 0.03)
-ER3 = nx.erdos_renyi_graph(25, 0.1)
-ER4 = nx.erdos_renyi_graph(15, 0.1)
-ER5 = nx.erdos_renyi_graph(20, 0.1)
+
+ER0 = nx.erdos_renyi_graph(50, 0.05, seed=SEED)
+ER1 = nx.erdos_renyi_graph(30, 0.01, seed=SEED)
+ER2 = nx.erdos_renyi_graph(25, 0.03, seed=SEED)
+ER3 = nx.erdos_renyi_graph(25, 0.1, seed=SEED)
+ER4 = nx.erdos_renyi_graph(15, 0.1, seed=SEED)
+ER5 = nx.erdos_renyi_graph(20, 0.1, seed=SEED)
 graphs = [ER0, ER1, ER2, ER3, ER4, ER5]
 for ER in graphs:
     for u, v in ER.edges():
@@ -116,46 +124,60 @@ def test_edge_list(edgelist, method, verbose=False):
 
 verbose = False
 
-print("=" * 20)
-print("BACKBONE (SIMAS)")
-print("- " * 10)
-ts, bb_simas_edges = test_edge_list(
-    edgelist, bb.structural_backbone_simas, verbose=verbose
-)
+if PAUSE:
+    input()
 
-print("=" * 20)
-print("BACKBONE (COSTA)")
-print("- " * 10)
-tc, bb_costa_edges = test_edge_list(
-    edgelist, bb.structural_backbone_costa, verbose=verbose
-)
+if SIMAS:
+    print("=" * 20)
+    print("BACKBONE (SIMAS)")
+    print("- " * 10)
+    ts, bb_simas_edges = test_edge_list(
+        edgelist, bb.structural_backbone_simas, verbose=verbose
+    )
 
-print("=" * 20)
-print("BACKBONE (NAÏVE)")
-print("- " * 10)
-tn, bb_naive_edges = test_edge_list(
-    edgelist, bb.structural_backbone_naive, verbose=verbose
-)
+if COSTA:
+    print("=" * 20)
+    print("BACKBONE (COSTA)")
+    print("- " * 10)
+    tc, bb_costa_edges = test_edge_list(
+        edgelist, bb.structural_backbone_costa, verbose=verbose
+    )
 
-print("=" * 20)
-print("BACKBONE (CLOSURE)")
-print("- " * 10)
-tb, bb_from_closure_edges = test_edge_list(edgelist, bb.backbone_py, verbose=verbose)
+if NAIVE:
+    print("=" * 20)
+    print("BACKBONE (NAÏVE)")
+    print("- " * 10)
+    tn, bb_naive_edges = test_edge_list(
+        edgelist, bb.structural_backbone_naive, verbose=verbose
+    )
 
-print("=-" * 20)
-print("-=" * 20)
-if bb_simas_edges == bb_costa_edges == bb_naive_edges == bb_from_closure_edges:
-    print("Backbones match!")
-else:
-    print("BACKBONES DON'T MATCH!!!")
-    print(f"{(bb_simas_edges == bb_costa_edges)=}")
-    print(f"{(bb_simas_edges == bb_naive_edges)=}")
-    print(f"{(bb_simas_edges == bb_from_closure_edges)=}")
-    print(f"{(bb_costa_edges == bb_naive_edges)=}")
-    print(f"{(bb_costa_edges == bb_from_closure_edges)=}")
-    print(f"{(bb_naive_edges == bb_from_closure_edges)=}")
+if CLOSE:
+    print("=" * 20)
+    print("BACKBONE (CLOSURE)")
+    print("- " * 10)
+    tb, bb_from_closure_edges = test_edge_list(
+        edgelist, bb.backbone_py, verbose=verbose
+    )
 
-print(f"Simas backbone took {ts*1e-9:.5e}s")
-print(f"Costa backbone took {tc*1e-9:.5e}s")
-print(f"Naïve backbone took {tn*1e-9:.5e}s")
-print(f"Closure backbone took {tb*1e-9:.5e}s")
+if CHECK:
+    print("=-" * 20)
+    print("-=" * 20)
+    if bb_simas_edges == bb_costa_edges == bb_naive_edges == bb_from_closure_edges:
+        print("Backbones match!")
+    else:
+        print("BACKBONES DON'T MATCH!!!")
+        print(f"{(bb_simas_edges == bb_costa_edges)=}")
+        print(f"{(bb_simas_edges == bb_naive_edges)=}")
+        print(f"{(bb_simas_edges == bb_from_closure_edges)=}")
+        print(f"{(bb_costa_edges == bb_naive_edges)=}")
+        print(f"{(bb_costa_edges == bb_from_closure_edges)=}")
+        print(f"{(bb_naive_edges == bb_from_closure_edges)=}")
+
+if SIMAS:
+    print(f"Simas backbone took {ts*1e-9:.5e}s")
+if COSTA:
+    print(f"Costa backbone took {tc*1e-9:.5e}s")
+if NAIVE:
+    print(f"Naïve backbone took {tn*1e-9:.5e}s")
+if CLOSE:
+    print(f"Closure backbone took {tb*1e-9:.5e}s")

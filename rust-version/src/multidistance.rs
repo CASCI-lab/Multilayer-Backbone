@@ -1,7 +1,12 @@
 use pyo3::prelude::*;
-use std::collections::{HashMap, HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::fmt;
 use std::ops::Add;
+
+// use std::collections::{HashMap, HashSet};
+// use identity_hash::IdentityHasher;
+// use std::hash::BuildHasherDefault;
+
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub struct NodeID(pub usize);
 impl fmt::Display for NodeID {
@@ -49,9 +54,12 @@ impl IntoPy<PyObject> for EdgeLayerID {
     }
 }
 
+// type MultiDistanceMap = HashMap<EdgeLayerID, f32, BuildHasherDefault<IdentityHasher<usize>>>;
+// type MultiDistanceMap = HashMap<EdgeLayerID, f32>;
+type MultiDistanceMap = FxHashMap<EdgeLayerID, f32>;
 #[derive(PartialEq, Clone, Debug, Default)]
 pub struct MultiDistance {
-    pub total: HashMap<EdgeLayerID, f32>,
+    pub total: MultiDistanceMap,
 }
 
 impl MultiDistance {
@@ -67,11 +75,22 @@ impl MultiDistance {
             layer_end,
             layer_weight_index,
         };
-        let total = if weight == 0.0 {
-            HashMap::new()
-        } else {
-            HashMap::from([(layer, weight)])
+        let mut total = MultiDistanceMap::default();
+        if weight != 0.0 {
+            total.insert(layer, weight);
         };
+        MultiDistance { total }
+    }
+
+    #[must_use]
+    pub fn from_layer_weights(layer_weights: &[(EdgeLayerID, f32)]) -> MultiDistance {
+        let mut total = MultiDistanceMap::default();
+        for tuple in layer_weights.iter() {
+            let (layer, weight) = *tuple;
+            if weight != 0.0 {
+                total.insert(layer, weight);
+            };
+        }
         MultiDistance { total }
     }
 
@@ -123,7 +142,7 @@ impl PartialOrd for MultiDistance {
             .iter()
             .chain(self.total.iter())
             .map(|(k, _)| k)
-            .collect::<HashSet<&EdgeLayerID>>();
+            .collect::<FxHashSet<&EdgeLayerID>>();
 
         for key in keys {
             let lhs = *self.total.get(key).unwrap_or(&0.0);
@@ -164,25 +183,11 @@ mod tests {
             layer_weight_index: 0,
         };
 
-        let m1 = MultiDistance {
-            total: HashMap::from([(layer1, 1.0), (layer2, 2.0)]),
-        };
-
-        let m2 = MultiDistance {
-            total: HashMap::from([(layer1, 2.0), (layer2, 1.0)]),
-        };
-
-        let m3 = MultiDistance {
-            total: HashMap::from([(layer1, 2.0), (layer2, 2.0)]),
-        };
-
-        let m4 = MultiDistance {
-            total: HashMap::from([(layer1, 1.0), (layer2, 1.0)]),
-        };
-
-        let m5 = MultiDistance {
-            total: HashMap::from([(layer2, 3.0)]),
-        };
+        let m1 = MultiDistance::from_layer_weights(&[(layer1, 1.0), (layer2, 2.0)]);
+        let m2 = MultiDistance::from_layer_weights(&[(layer1, 2.0), (layer2, 1.0)]);
+        let m3 = MultiDistance::from_layer_weights(&[(layer1, 2.0), (layer2, 2.0)]);
+        let m4 = MultiDistance::from_layer_weights(&[(layer1, 1.0), (layer2, 1.0)]);
+        let m5 = MultiDistance::from_layer_weights(&[(layer2, 3.0)]);
 
         // testing basic equalities
         assert!(m5.partial_cmp(&m1).is_none());
