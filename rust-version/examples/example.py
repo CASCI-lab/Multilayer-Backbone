@@ -3,6 +3,7 @@ import random  # noqa
 import time
 
 import backbone as bb
+import graph_collapse as gc
 import networkx as nx
 
 # G_L0 = nx.DiGraph()
@@ -37,13 +38,14 @@ import networkx as nx
 # )
 # graphs = [G_L0, G_L1, G_L2]
 
-SIMAS = False
+DISTANCECLOSURE = True
+SIMAS = True
 COSTA = False
 NAIVE = True
-CLOSE = False
+CLOSE = True
 CHECK = False
 PAUSE = False
-SEED = 0
+SEED = 1
 
 
 ER0 = nx.erdos_renyi_graph(50, 0.05, seed=SEED)
@@ -104,6 +106,10 @@ for i, G in enumerate(graphs):
             (G.nodes[u]["index"], G.nodes[v]["index"], i, i, 0, d["weight"])
         )
 
+mg = gc.combine_graphs(
+    graphs, map(str, range(len(graphs))), identity_edge_weight=interweight
+)
+
 
 def test_edge_list(edgelist, method, verbose=False):
     t0 = time.perf_counter_ns()
@@ -126,6 +132,14 @@ verbose = False
 
 if PAUSE:
     input()
+
+if DISTANCECLOSURE:
+    print("=" * 20)
+    print("BACKBONE (DISTANCECLOSURE)")
+    print("- " * 10)
+    t0 = time.perf_counter_ns()
+    gc.multidistance_backbone(mg)
+    td = time.perf_counter_ns() - t0
 
 if SIMAS:
     print("=" * 20)
@@ -173,6 +187,8 @@ if CHECK:
         print(f"{(bb_costa_edges == bb_from_closure_edges)=}")
         print(f"{(bb_naive_edges == bb_from_closure_edges)=}")
 
+if DISTANCECLOSURE:
+    print(f"distanceclosure took {td*1e-9:.5e}s")
 if SIMAS:
     print(f"Simas backbone took {ts*1e-9:.5e}s")
 if COSTA:
