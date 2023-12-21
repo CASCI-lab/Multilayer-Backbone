@@ -1,7 +1,7 @@
 # type: ignore
 from itertools import combinations
 from numbers import Number
-from typing import Hashable, Iterable, cast
+from typing import Hashable, Iterable, Literal, cast
 
 import distanceclosure as dc
 import networkx as nx
@@ -70,7 +70,7 @@ def multidistance_backbone(
 
 def combine_graphs(
     graphs: list[nx.MultiDiGraph],
-    graph_labels: list[Hashable],
+    graph_labels: list[str],
     rename_nodes: bool = False,
     identity_edge_weight: float | None = None,
     additional_edges: list[tuple[Hashable, Hashable, tuple[Hashable, Hashable], float]]
@@ -112,8 +112,50 @@ def combine_graphs(
         d[weight_edge_attribute] = weight
         d[layer_edge_attribute] = layer
         multilayer_graph.add_edge(u, v, **d)
-
+    multilayer_graph.graph["layers"] = graph_labels.copy()
     return multilayer_graph
+
+
+def flatten_multigraph(
+    multilayer_graph: nx.MultiDiGraph,
+    strategy: Literal["max", "min"] = "min",
+    weight_edge_attribute: str = "weight",
+    layer_edge_attribute: str = "layer",
+    trim_layer_suffix: bool = False,
+) -> nx.DiGraph:
+    n_layers = len(multilayer_graph.graph["layers"])
+    edge_counts = {}
+    dg = nx.DiGraph()
+    for u, v, d in multilayer_graph.edges(data=True):
+        if trim_layer_suffix:
+            u_trim = u.removesuffix("_" + d[layer_edge_attribute])
+            v_trim = v.removesuffix("_" + d[layer_edge_attribute])
+        else:
+            u_trim = u
+            v_trim = v
+        if dg.has_edge(u_trim, v_trim):
+            if strategy == "max":
+                if (
+                    d[weight_edge_attribute]
+                    > dg.edges[(u_trim, v_trim)][weight_edge_attribute]
+                ):
+                    dg.add_edge(u_trim, v_trim, **d)
+            elif strategy == "min":
+                if (
+                    d[weight_edge_attribute]
+                    < dg.edges[(u_trim, v_trim)][weight_edge_attribute]
+                ):
+                    dg.add_edge(u_trim, v_trim, **d)
+        else:
+            dg.add_edge(u_trim, v_trim, **d)
+        edge_counts[(u_trim, v_trim)] = edge_counts.get((u_trim, v_trim), 0) + 1
+
+    if strategy == "max":
+        for u, v in list(dg.edges()):
+            if edge_counts[(u, v)] != n_layers:
+                dg.remove_edge(u, v)
+
+    return dg
 
 
 if __name__ == "__main__":
@@ -129,6 +171,7 @@ if __name__ == "__main__":
     graph1.add_edge(1, 2, weight=1)
     graph1.add_edge(2, 0, weight=1)
     graph1.add_edge(0, 2, weight=1)
+    graph1.add_edge(3, 4, weight=1)
 
     mg = combine_graphs([graph0, graph1], [0, 1])
     for x in mg.edges(data=True):
@@ -151,5 +194,14 @@ if __name__ == "__main__":
 
     bbr = multidistance_backbone(mgr)
     for x in bbr.edges(data=True):
+        print(x)
+    print("-" * 20)
+
+    fmg = flatten_multigraph(mg, strategy="min")
+    for x in fmg.edges(data=True):
+        print(x)
+    print("-" * 20)
+    fmg = flatten_multigraph(mg, strategy="max")
+    for x in fmg.edges(data=True):
         print(x)
     print("-" * 20)
