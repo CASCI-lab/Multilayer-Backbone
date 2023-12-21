@@ -15,6 +15,7 @@ def multidistance_backbone(
     self_loops: bool = False,
 ) -> nx.MultiDiGraph:
     backbone = nx.MultiDiGraph()
+    backbone.graph = multilayer_graph.graph
 
     layer_slices: dict[Hashable, nx.DiGraph] = {}
     zero_weight_subgraph = nx.DiGraph()
@@ -73,7 +74,7 @@ def combine_graphs(
     graph_labels: list[str],
     rename_nodes: bool = False,
     identity_edge_weight: float | None = None,
-    additional_edges: list[tuple[Hashable, Hashable, tuple[Hashable, Hashable], float]]
+    additional_edges: list[tuple[Hashable, Hashable, tuple[str, str], float]]
     | None = None,
     weight_edge_attribute: str = "weight",
     layer_edge_attribute: str = "layer",
@@ -122,14 +123,28 @@ def flatten_multigraph(
     weight_edge_attribute: str = "weight",
     layer_edge_attribute: str = "layer",
     trim_layer_suffix: bool = False,
+    relabeling_map: dict[Hashable, Hashable] | None = None,
 ) -> nx.DiGraph:
+    if relabeling_map is None:
+        relabeling_map = {}
+
     n_layers = len(multilayer_graph.graph["layers"])
     edge_counts = {}
     dg = nx.DiGraph()
     for u, v, d in multilayer_graph.edges(data=True):
+        if u in relabeling_map:
+            u = relabeling_map[u]
+        if v in relabeling_map:
+            v = relabeling_map[v]
+
+        if d[layer_edge_attribute][0] != d[layer_edge_attribute][1]:
+            continue
         if trim_layer_suffix:
-            u_trim = u.removesuffix("_" + d[layer_edge_attribute])
-            v_trim = v.removesuffix("_" + d[layer_edge_attribute])
+            for layer_suffix in multilayer_graph.graph["layers"]:
+                if u.endswith("_" + layer_suffix):
+                    u_trim = u.removesuffix("_" + layer_suffix)
+                if v.endswith("_" + layer_suffix):
+                    v_trim = v.removesuffix("_" + layer_suffix)
         else:
             u_trim = u
             v_trim = v
@@ -174,34 +189,51 @@ if __name__ == "__main__":
     graph1.add_edge(3, 4, weight=1)
 
     mg = combine_graphs([graph0, graph1], [0, 1])
+    print("mg")
     for x in mg.edges(data=True):
         print(x)
     print("-" * 20)
     mgr = combine_graphs(
         [graph0, graph1],
-        [0, 1],
+        ["0", "1"],
         rename_nodes=True,
         additional_edges=[(0, 2, (0, 1), 10)],
     )
+    print("mgr")
     for x in mgr.edges(data=True):
         print(x)
     print("-" * 20)
 
     bb = multidistance_backbone(mg)
+    print("bb")
     for x in bb.edges(data=True):
         print(x)
     print("-" * 20)
 
     bbr = multidistance_backbone(mgr)
+    print("bbr")
     for x in bbr.edges(data=True):
         print(x)
     print("-" * 20)
 
     fmg = flatten_multigraph(mg, strategy="min")
+    print("fmg1")
     for x in fmg.edges(data=True):
         print(x)
     print("-" * 20)
     fmg = flatten_multigraph(mg, strategy="max")
+    print("fmg2")
     for x in fmg.edges(data=True):
+        print(x)
+    print("-" * 20)
+
+    fmgr = flatten_multigraph(mgr, strategy="min", trim_layer_suffix=True)
+    print("fmgr1")
+    for x in fmgr.edges(data=True):
+        print(x)
+    print("-" * 20)
+    fmgr = flatten_multigraph(mgr, strategy="max", trim_layer_suffix=True)
+    print("fmgr2")
+    for x in fmgr.edges(data=True):
         print(x)
     print("-" * 20)
